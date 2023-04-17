@@ -1,0 +1,40 @@
+hi, The arguments here are emphasized in caps, use all lower case
+ex. 'editor place 4' --> this will place structure with id 4, DO NOT TYPE 'editor PLACE 4'\n";
+
+
+
+map ---- display village AND village details including guard status
+
+next ---- get new village to attack.
+attack ---- attack enter attack with this village, this auto deploys troops
+NOT IMPLEMENTED attack MANUAL ---- attack enter attack with this village. YOU WILL MANUALLY NEED TO PLACE DOWN TROOPS
+simdefence ---- simulate a defence on your village
+
+shop CATALOG ----  shows available structures. shop BUY ID ---- buy (build) the structure with the coresponding id\
+shop BUY INDEX---- buy the thing, index is the index in the catalog
+shop TRAIN ---- train a troop and add to army - 'A' -> archer, 'C' -> cannon, 'K' -> knight, 'S' soldier
+shop collect ---- collect from all resource buildings
+
+editor PLACE X Y ID ---- place structure with id onto layout at coordinates X,Y.
+editor REMOVE ID ---- remove structure with ID.
+editor DISPLAY ---- displays the current layout (same as map).
+editor RNG ---- randomly generate a layout based on what you have
+editor AVAIL ---- get available bought structures to be placed down
+editor RESET ---- unplace all buildings
+
+
+-----THESE ARE CASE SENSITIVE------
+shop upgradeT <A/S/C/K>---- upgrade a troop ex "shop upgradeT A" will upgrade an archer
+shop upgradeS <id>---- upgrade a structure
+-----THESE ARE CASE SENSITIVE------
+
+
+------------CHEAT ZONE-------------
+delete ---- resets ALL OF your village progress
+cheat ---- fill storages to max... hey no cheating!
+shop BUYALL ---- buys everything in the shop and runs the cheat command.... hey no cheating
+NOT IMPLEMENTED timeGlitch ---- bypass wait times
+------------CHEAT ZONE-------------
+
+
+See readme.txt for instructions on how to play the game
