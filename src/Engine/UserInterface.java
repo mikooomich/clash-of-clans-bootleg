@@ -210,6 +210,8 @@ public class UserInterface {
           MainVillage tempMain = new MainVillage(tempRtx);
           tempMain.setTrainedArmy(MainVillage.getNextArmy(myVillage.villageHall.currentLevel));
           initiateSimulator(tempMain, myVillage, true);
+          battleSim.faceRoll();
+          battleSim.startSim();
           System.out.println("reached here in simdefence in UI");
           battleSim = null;
           tempRtx = null;
@@ -247,13 +249,12 @@ public class UserInterface {
           if (opponent == null) {
             opponent = getNextVillage(myVillage.villageHall.getCurrentLevel());
           }
-  //          operation = cmd[1];
-            initiateSimulator(myVillage, opponent, true);
-  //          if (operation == "faceroll") {
-//            battleSim.faceRoll();
-  //          }
-//            battleSim.startSim();
-
+//          operation = cmd[1];
+          initiateSimulator(myVillage, opponent, true);
+//          if (operation == "faceroll") {
+          battleSim.faceRoll();
+//          }
+          battleSim.startSim();
           break;
 
 
@@ -328,8 +329,9 @@ public class UserInterface {
 
           opponent = getNextVillage(1);
           rtx4090TI.append("Starting simulation...");
-          rtx4090TI.updateDisplay();
-          initiateSimulator(myVillage, opponent, false);
+          initiateSimulator(myVillage, opponent, true);
+          battleSim.faceRoll();
+          battleSim.startSim();
           break;
 
 
