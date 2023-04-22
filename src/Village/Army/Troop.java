@@ -2,6 +2,7 @@ package Village.Army;
 
 import Village.AttackOrDefence;
 import Village.Inhabitant;
+import Village.MainVillage;
 
 import java.util.HashMap;
 
@@ -53,12 +54,8 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
 
   public double getUpgradeTime() {return upgradeTime;}
 
-  public static final int TICK_SPEED = 10; //For upgrade/building
 
-  public static final double PAUSE_TIME = Math.floor((Double.valueOf(1)/ TICK_SPEED) * 1000);
-
-  boolean realtime = true;
-
+  MainVillage myVillage;
 
 
   /**
@@ -142,6 +139,11 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
 
     rtx4090TI.append("upgrading...");
     doBuildOrUpgrade(troop);
+  }
+
+
+  public void setMainVillage(MainVillage villageeeee) {
+    myVillage =  villageeeee;
   }
 
 }

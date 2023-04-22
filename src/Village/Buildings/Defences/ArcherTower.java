@@ -4,11 +4,16 @@ import Village.Buildings.VillageHall;
 import static Engine.UserInterface.rtx4090TI;
 public class ArcherTower extends DefenceStructures {
 
-   private static int maxLevel = 5;
+    public static int maxLevel = 5;
 
-    private VillageHall villageHall;
+
+
     public ArcherTower(VillageHall village) {
-        this.villageHall = village;
+        this();
+        this.setVillageHall(village);
+    }
+
+    public ArcherTower() {
         this.name = "Archer_Tower";
         this.currentLevel = 1;
         this.maxHitpoints = 400;
@@ -27,7 +32,7 @@ public class ArcherTower extends DefenceStructures {
 
     public void upgrade() {
         if (currentLevel < maxLevel) {
-            startBuildOrUpgrade(villageHall);
+            startBuildOrUpgrade(getVillageHall());
         } else {
             rtx4090TI.append("Already reached max level.");
         }
@@ -39,7 +44,6 @@ public class ArcherTower extends DefenceStructures {
         this.currentLevel+= 1;
         this.damage = Math.round(damage*dmgMultiplier);
         rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
-
     }
 
 

@@ -7,12 +7,14 @@ import static Engine.UserInterface.rtx4090TI;
  */
 public class Farm extends Production {
 
-  private static int maxLevel = 5;
+  public static int maxLevel = 5;
 
-  private VillageHall villageHall;
 
   public Farm(VillageHall village) {
-    this.villageHall = village;
+    this();
+    this.setVillageHall(village);
+  }
+  public Farm() {
     this.name = "Farm";
     this.currentLevel = 1;
     this.maxHitpoints = 300;
@@ -32,7 +34,7 @@ public class Farm extends Production {
 
   public void upgrade() {
     if(currentLevel < maxLevel) {
-      startBuildOrUpgrade(villageHall);
+      startBuildOrUpgrade(getVillageHall());
     } else {
       rtx4090TI.append("Already reached max level.");
     }

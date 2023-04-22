@@ -59,13 +59,16 @@ public class AsyncClock extends Thread {
                 if (thing instanceof Structures struct) {
                     if (struct.getIsBuilt()) {  // upgrade if building only if is built already.
                         struct.finishUpgrade();
+                        rtx4090TI.updateDisplay("Upgrade Finished");
                     } else {
                         struct.isBought = true;
                         struct.finishBuild();
+                        rtx4090TI.updateDisplay("Build Finished");
                     }
                 }
                 else {
                     thing.finishUpgrade();
+                    rtx4090TI.updateDisplay("Upgrade Finished");
                 }
             });
 

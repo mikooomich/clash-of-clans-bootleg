@@ -5,13 +5,16 @@ import Village.Buildings.VillageHall;
 import static Engine.UserInterface.rtx4090TI;
 public class IronMine extends Production {
 
-    private static int maxLevel = 3;
+    public static int maxLevel = 3;
 
-    private VillageHall villageHall;
 
-    private long lastTimeStamp;
+
+    public long lastTimeStamp;
     public IronMine(VillageHall village) {
-        this.villageHall = village;
+        this();
+        this.setVillageHall(village);
+    }
+    public IronMine() {
         this.name = "IronMine";
         this.currentLevel = 1;
         this.maxHitpoints = 150;
@@ -26,7 +29,7 @@ public class IronMine extends Production {
 
     public void upgrade() {
         if(currentLevel < maxLevel) {
-            startBuildOrUpgrade(villageHall);
+            startBuildOrUpgrade(getVillageHall());
         } else {
             rtx4090TI.append("Already reached max level.");
         }
@@ -49,7 +52,7 @@ public class IronMine extends Production {
         long currentTime = System.currentTimeMillis();
         long differenceOfTimeInSec = (currentTime - lastTimeStamp) / 1000;
 
-        villageHall.updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
+        getVillageHall().updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
         lastTimeStamp = System.currentTimeMillis();
     }
 

@@ -8,18 +8,22 @@ import static Engine.UserInterface.rtx4090TI;
 public class Catapult extends Troop {
 
     public static int maxLevel = 4;
-    private int maxHP = 400;
-    private float hpMultiplier = 1.25f;
-    private int currentlvl = 1;
-    private int upgradeLength = 2;
-    private int catapultDamage = 5;
-    private float dmgMultiplier = 1.25f;
+    public  int maxHP = 400;
+    public float hpMultiplier = 1.25f;
+    public int currentlvl = 1;
+    public int upgradeLength = 2;
+    public int catapultDamage = 5;
+    public float dmgMultiplier = 1.25f;
+    public MainVillage mainVillage;
 
-    private MainVillage myVillage;
+
     public Catapult(MainVillage village) {
-        this.myVillage = village;
+        this();
+        this.mainVillage = village;
+        this.currentLevel = mainVillage.catapultLvl;
+    }
+    public Catapult() {
         this.name = "Catapult";
-        this.currentLevel = myVillage.catapultLvl;
         this.maxHitpoints = maxHP;
         this.cost.replace("Wood", 0, 16);
         this.cost.replace("Iron", 0, 7);
@@ -53,7 +57,7 @@ public class Catapult extends Troop {
     public void finishUpgrade() {
         maxHP = Math.round(maxHP*hpMultiplier);
         catapultDamage = Math.round(catapultDamage*dmgMultiplier);
-        rtx4090TI.updateDisplay("Catapult upgraded. Current level = " + myVillage.catapultLvl);
+        rtx4090TI.updateDisplay("Catapult upgraded. Current level = " + mainVillage.catapultLvl);
 
     }
 

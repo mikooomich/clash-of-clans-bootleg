@@ -5,19 +5,22 @@ import static Engine.UserInterface.rtx4090TI;
 public class Knight extends Troop {
 
     public static int maxLevel = 4;
-    private int maxHP = 100;
-    private float hpMultiplier = 1.5f;
-    private int currentlvl = 1;
-    private int upgradeLength = 3;
-    private int knightDamage = 15;
-    private float dmgMultiplier = 1.25f;
-    
-    private MainVillage myVillage;
+    public int maxHP = 100;
+    public float hpMultiplier = 1.5f;
+    public int currentlvl = 1;
+    public int upgradeLength = 3;
+    public int knightDamage = 15;
+    public float dmgMultiplier = 1.25f;
+    public MainVillage mainVillage;
+
 
     public Knight(MainVillage village) {
-        this.myVillage = village;
+        this();
+        this.mainVillage = village;
+        this.currentLevel = mainVillage.knightLvl;
+    }
+    public Knight() {
         this.name = "Knight";
-        this.currentLevel = myVillage.knightLvl;
         this.maxHitpoints = maxHP;
         this.cost.replace("Wood", 0, 3);
         this.cost.replace("Iron", 0, 2);
@@ -52,7 +55,7 @@ public class Knight extends Troop {
     public void finishUpgrade() {
         maxHP = Math.round(maxHP*hpMultiplier);
         knightDamage = Math.round(knightDamage*dmgMultiplier);
-        rtx4090TI.updateDisplay("Knight upgraded. Current level = " + myVillage.knightLvl);
+        rtx4090TI.updateDisplay("Knight upgraded. Current level = " + mainVillage.knightLvl);
     }
 
 }

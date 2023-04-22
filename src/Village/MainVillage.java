@@ -17,6 +17,15 @@ import static Engine.UserInterface.rtx4090TI;
  */
 public class MainVillage{
 
+  public interface Generator {
+    /**
+     * Generate a new, random village, adhering to limits of the village
+     * @return
+     */
+    public MainVillage GenerateVillage(int targetVillageHallLvl);
+  }
+
+
   public static final HashMap<String, Integer> STARTING_STRUCTURES = new HashMap<>() {
     {
       put("VillageHall", 1);
@@ -205,6 +214,28 @@ public class MainVillage{
    */
   public Structures[] getAvailableStructures(){return availableStructures.toArray(new Structures[availableStructures.size()]);}
 
+  /**
+   * Get the list entire objects
+   * @return
+   */
+  public List<Structures> getlISTOFAvailableStructures() {
+    return availableStructures;
+  }
+
+  public void setListOfAvailableStructures(List<Structures> l) {this.availableStructures = l;}
+
+  public List<Structures> getlISTOFPlacedStructures() {
+    return placedStructures;
+  }
+
+  public void setListOfPlacedStructures(List<Structures> l) {this.placedStructures = l;}
+
+  public List<Troop> getlISTOFTrainedArmy() {
+    return trainedArmy;
+  }
+
+  public void setListOfTroops(List<Troop> l) {this.trainedArmy = l;}
+
 
 
 
@@ -278,10 +309,10 @@ public class MainVillage{
   }
 
   public String getDetails() {
-    String details = "Village hall level: " + villageHall.getCurrentLevel() + " population: " + totalPopulation + "/" + populationLimit +"\n" +
-            "Guard status: " + isOnGuard + "\n" +
-            "Army size: " + trainedArmy.size() + " Placed structure count: " + placedStructures.size() + " Available structure count: " + availableStructures.size() +"\n" +
-            "Resources: Gold: " + villageHall.getCurrentGoldInStorage() + " Iron: " + villageHall.getCurrentIronInStorage() + "Wood: " + villageHall.getCurrentWoodInStorage();
+    String details = "Village hall level: " + this.villageHall.getCurrentLevel() + " population: " + this.getTotalPopulation() + "/" + this.populationLimit +"\n" +
+            "Guard status: " + this.isOnGuard + "\n" +
+            "Army size: " + this.trainedArmy.size() + " Placed structure count: " + this.placedStructures.size() + " Available structure count: " + this.availableStructures.size() +"\n" +
+            "Resources: Gold: " + this.villageHall.getCurrentGoldInStorage() + " Iron: " + this.villageHall.getCurrentIronInStorage() + "Wood: " + this.villageHall.getCurrentWoodInStorage();
     return details;
   }
 
@@ -460,7 +491,7 @@ public class MainVillage{
    * @return MainVillage (random village)
    */
   public static MainVillage getNextVillage(int targetVillageHallLvl) {
-    UserInterface.Generator yes = new UserInterface.Generator() {
+    Generator yes = new Generator() {
       //      @Override
       public MainVillage GenerateVillage(int targetVillageHallLvl) {
         MainVillage hi = new MainVillage();
@@ -505,6 +536,10 @@ public class MainVillage{
    */
   public static MainVillage resetVillage() {
     return new MainVillage();
+  }
+
+  public void setVillageHall(VillageHall village) {
+    this.villageHall = village;
   }
 
 }

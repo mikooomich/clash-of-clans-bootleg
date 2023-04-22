@@ -3,12 +3,12 @@ package Engine;
 import CustomExceptions.Exceptions;
 import Village.*;
 import Village.Army.*;
+import com.sun.tools.javac.Main;
 
 // for system.in reader
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.*;
 import java.util.NoSuchElementException;
 
 import static Village.MainVillage.resetVillage;
@@ -19,16 +19,6 @@ import static Village.MainVillage.getNextVillage;
  * Main user interface class, which handles all user interfaces and manages them.
  */
 public class UserInterface {
-
-  public interface Generator {
-    /**
-     * Generate a new, random village, adhering to limits of the village
-     * @return
-     */
-    public MainVillage GenerateVillage(int targetVillageHallLvl);
-  }
-
-
 
 
   //Unique player ID, for multiplayer
@@ -73,7 +63,15 @@ public class UserInterface {
 
 
   public UserInterface() throws Exception {
-    myVillage = new MainVillage();
+    //Delete me if not work
+
+    myVillage = XmlParser.readFile();
+
+    if(myVillage == null) {
+      myVillage = new MainVillage();
+      System.out.println("was null");
+    }
+    //End delete
     troopFactory = new TroopFactory();
     villageSim = new VillageSimulator(myVillage);
     rtx4090TI.updateDisplay("Hewwo! Type a command or or type 'man' for the manual");
@@ -95,6 +93,9 @@ public class UserInterface {
       switch (whatToDo) {
 
         case "exit":
+          //Delete me if not work
+          XmlParser.writeVillage(myVillage);
+          //End of delete me
           break outer;
 
 
@@ -167,6 +168,8 @@ public class UserInterface {
                 shop.upgradeStructure(Integer.parseInt(cmd[2]));
               } catch (NoSuchElementException e) {
                 rtx4090TI.updateDisplay("Invalid ID or structure not placed, run catalog command to see available");
+              } catch (NumberFormatException e) {
+                rtx4090TI.updateDisplay("Invalid ID, run catalog command to see available");
               }
             } else if (operation.equals("collect")) {
 
@@ -189,8 +192,8 @@ public class UserInterface {
           rtx4090TI.append("Starting a defence.");
           opponent = getNextVillage(myVillage.villageHall.currentLevel);
           initiateSimulator(opponent, myVillage, true);
-          battleSim.faceRoll();
-          battleSim.startSim();
+//          battleSim.faceRoll();
+//          battleSim.startSim();
 //          rtx4090TI.updateDisplay("Simulation done");
           battleSim = null;
 
@@ -219,12 +222,16 @@ public class UserInterface {
           if (opponent == null) {
             opponent = getNextVillage(myVillage.villageHall.getCurrentLevel());
           }
-//          operation = cmd[1];
-          initiateSimulator(myVillage, opponent, true);
-//          if (operation == "faceroll") {
-          battleSim.faceRoll();
-//          }
-          battleSim.startSim();
+  //          operation = cmd[1];
+          if(opponent == null) {
+            opponent = getNextVillage(myVillage.villageHall.currentLevel);
+          }
+            initiateSimulator(myVillage, opponent, true);
+  //          if (operation == "faceroll") {
+//            battleSim.faceRoll();
+  //          }
+//            battleSim.startSim();
+
           break;
 
 
@@ -299,9 +306,7 @@ public class UserInterface {
 
           opponent = getNextVillage(1);
           rtx4090TI.append("Starting simulation...");
-          initiateSimulator(myVillage, opponent, true);
-          battleSim.faceRoll();
-          battleSim.startSim();
+          initiateSimulator(myVillage, opponent, false);
           break;
 
 
@@ -317,8 +322,8 @@ public class UserInterface {
               data = stockpile.readLine();
             }
           }
-          catch (FileNotFoundException aaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {
-            rtx4090TI.updateDisplay("COULD NOT PRINT MANUAL, FILE NOT FOUNT \n\n" + aaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
+          catch (FileNotFoundException eee) {
+            rtx4090TI.updateDisplay("Could not print manual, file not found");
           }
 
           break;

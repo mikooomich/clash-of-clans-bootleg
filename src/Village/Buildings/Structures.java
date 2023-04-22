@@ -33,6 +33,9 @@ public abstract class Structures extends Inhabitant {
 
   public abstract void upgrade();
 
+
+  private VillageHall villageHall; // village hall link, for when upgrading
+
   /**
    * Getter method for the build time of the structure
    * @return buildTime
@@ -60,6 +63,7 @@ public abstract class Structures extends Inhabitant {
       rtx4090TI.append(this.getName() + " build/upgrade started.");
       this.isPaused = true;
       doBuildOrUpgrade(this);
+      village.buildDone();
     } else {
       rtx4090TI.append("No builder is available at the moment.");
     }
@@ -71,11 +75,29 @@ public abstract class Structures extends Inhabitant {
 
   public boolean getIsBuilt() {return this.isBuilt;}
 
-  public void finishBuild() {isBuilt = true;}
+  public void finishBuild() {this.isBuilt = true;}
 
   public int getDamage() {
     return 0;
   }
   public abstract void finishUpgrade();
+
+
+
+  /**
+   * Village Hall setter, necessary for upgrading to work
+   * @param villageHall
+   */
+  public void setVillageHall(VillageHall villageHall)  {
+    this.villageHall = villageHall;
+  }
+
+  /**
+   * Village Hall getter, necessary for upgrading to work
+   * @param villageHall
+   */
+  public VillageHall getVillageHall()  {
+    return this.villageHall;
+  }
 
 }

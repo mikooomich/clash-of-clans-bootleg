@@ -29,14 +29,24 @@ attack
 
 // search for a village, they attack you
 next
-attack
+simdefence
 
 
 // upgrade to the next villagehall, then upgrade a few other buildings/troops
 // ALL OF THESE NEED (buildings need to be placed to be upgraded)
-shop upgradeB 7 (villageHall ID)
-shop upgradeB 1 (another structure ID)
+// If you do not have enough resource type without quotations: "cheat"
+shop catalog (view what can be upgraded/bought)
+shop upgradeS 7 (villageHall ID)
+shop upgradeS 1 (another structure ID)
 shop upgradeT A (upgrade all trained Archers)
 shop upgradeT K (upgrade all trained Knight)
 shop collect (collects all resource buildings)
 
+
+
+EXTRAS:
+// auto make add an army to your village to test challenge adapters
+testchallenge
+
+// automatically starts build/upgrade on 3 structures, 3rd should fail because 2 builder limit.
+multibuildertest

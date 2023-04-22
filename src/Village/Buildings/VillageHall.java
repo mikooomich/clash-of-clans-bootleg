@@ -17,11 +17,17 @@ public class VillageHall extends Village.Buildings.Structures {
 
   public static final int maxLevel = 3;
 
+
+
+  public VillageHall(MainVillage mv) {
+    this();
+    this.mainVillage = mv;
+    addStructuresToAvailable(MainVillage.LEVEL_1_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_1_AVAILABLE_STRUCTURES);
+  }
   /**
    * Creates a new village hall at level 1 with all it's things at level 1
-   * @param mv
    */
-  public VillageHall(MainVillage mv) {
+  public VillageHall() {
     this.name = "VillageHall";
     this.currentLevel = 1;
     this.maxHitpoints = 1000;
@@ -34,23 +40,22 @@ public class VillageHall extends Village.Buildings.Structures {
     this.baseMaxGoldStorage = 500;
     this.currentWoodInStorage = 1550;
     this.currentIronInStorage = 50;
-    this.mainVillage = mv;
     this.symbol = "v";
     this.availableBuilders = 2;
     maxBuilders = availableBuilders;
-    addStructuresToAvailable(MainVillage.LEVEL_1_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_1_AVAILABLE_STRUCTURES);
+
     //add storage multiplier / update upgrade method
   }
 
 
   //Current wood in storage for the village
-  private int currentWoodInStorage;
+  public int currentWoodInStorage;
 
   //Current iron in storage for the village
-  private int currentIronInStorage;
+  public int currentIronInStorage;
 
   //Current gold in storage for the village
-  private int currentGoldInStorage;
+  public int currentGoldInStorage;
 
   //Base max wood capacity for storage
   public int baseMaxWoodStorage;
@@ -80,6 +85,13 @@ public class VillageHall extends Village.Buildings.Structures {
   private int currentBuildingsBuilt;
 
   private MainVillage mainVillage;
+
+
+
+  public void setMainVillage(MainVillage mv) {
+    mainVillage = mv;
+  }
+
 
   /**
    * upgrade village hall, adds next level's buildings to avail structures list
