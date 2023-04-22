@@ -9,8 +9,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 
+import static Engine.Editor.rng;
 import static Engine.UserInterface.drawMap;
-import static Engine.UserInterface.rng;
 import static Village.MainVillage.MAP_SIZE;
 
 /**
