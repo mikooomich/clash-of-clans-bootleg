@@ -192,8 +192,8 @@ public class UserInterface {
           rtx4090TI.append("Starting a defence.");
           opponent = getNextVillage(myVillage.villageHall.currentLevel);
           initiateSimulator(opponent, myVillage, true);
-//          battleSim.faceRoll();
-//          battleSim.startSim();
+          battleSim.faceRoll();
+          battleSim.startSim();
 //          rtx4090TI.updateDisplay("Simulation done");
           battleSim = null;
 
@@ -222,16 +222,12 @@ public class UserInterface {
           if (opponent == null) {
             opponent = getNextVillage(myVillage.villageHall.getCurrentLevel());
           }
-  //          operation = cmd[1];
-          if(opponent == null) {
-            opponent = getNextVillage(myVillage.villageHall.currentLevel);
-          }
-            initiateSimulator(myVillage, opponent, true);
-  //          if (operation == "faceroll") {
-//            battleSim.faceRoll();
-  //          }
-//            battleSim.startSim();
-
+//          operation = cmd[1];
+          initiateSimulator(myVillage, opponent, true);
+//          if (operation == "faceroll") {
+          battleSim.faceRoll();
+//          }
+          battleSim.startSim();
           break;
 
 
@@ -306,7 +302,9 @@ public class UserInterface {
 
           opponent = getNextVillage(1);
           rtx4090TI.append("Starting simulation...");
-          initiateSimulator(myVillage, opponent, false);
+          initiateSimulator(myVillage, opponent, true);
+          battleSim.faceRoll();
+          battleSim.startSim();
           break;
 
 
