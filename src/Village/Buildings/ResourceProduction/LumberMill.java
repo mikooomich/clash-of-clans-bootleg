@@ -2,9 +2,7 @@ package Village.Buildings.ResourceProduction;
 
 import CustomExceptions.Exceptions;
 import Village.Buildings.VillageHall;
-
-import java.util.Vector;
-
+import static Engine.UserInterface.rtx4090TI;
 public class LumberMill extends Production {
 
     private static int maxLevel = 4;
@@ -28,18 +26,19 @@ public class LumberMill extends Production {
 
     public void upgrade() {
         if(currentLevel < maxLevel) {
-            try {
-                startBuildOrUpgrade(villageHall);
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
-            }
-            this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
-            this.currentLevel+= 1;
-            this.productionRate = Math.round(productionRate*productionRateMutliplier);
-            System.out.println(this.getName() + " upgraded. Current level = " + this.currentLevel);
+            startBuildOrUpgrade(villageHall);
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
+    }
+
+    @Override
+    public void finishUpgrade() {
+        this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
+        this.currentLevel+= 1;
+        this.productionRate = Math.round(productionRate*productionRateMutliplier);
+        rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
+
     }
 
     public void startTimeStamp() {

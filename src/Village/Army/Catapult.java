@@ -1,6 +1,9 @@
 package Village.Army;
 
 import Village.MainVillage;
+import static Engine.UserInterface.rtx4090TI;
+
+import static Engine.UserInterface.rtx4090TI;
 
 public class Catapult extends Troop {
 
@@ -37,14 +40,20 @@ public class Catapult extends Troop {
             try {
                 startUpgradeTime(this);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                rtx4090TI.append(e.getMessage());
             }
-            maxHP = Math.round(maxHP*hpMultiplier);
-            catapultDamage = Math.round(catapultDamage*dmgMultiplier);
-            System.out.println("Catapult upgraded. Current level = " + myVillage.catapultLvl);
+
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
+
+    }
+
+    @Override
+    public void finishUpgrade() {
+        maxHP = Math.round(maxHP*hpMultiplier);
+        catapultDamage = Math.round(catapultDamage*dmgMultiplier);
+        rtx4090TI.updateDisplay("Catapult upgraded. Current level = " + myVillage.catapultLvl);
 
     }
 

@@ -5,6 +5,9 @@ import Village.Inhabitant;
 
 import java.util.HashMap;
 
+import static Engine.UserInterface.rtx4090TI;
+import static Engine.VillageSimulator.doBuildOrUpgrade;
+
 /**
  * This is the super class for the army troops. All troops share these properties and all troops attributes depend on these properties values
  */
@@ -23,7 +26,7 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
   public int maxRange;
 
 
-  public float upgradeTime;
+//  public float upgradeTime;
 
 
 
@@ -48,7 +51,7 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
 
   public HashMap getCost() {return cost;}
 
-  public float getUpgradeTime() {return upgradeTime;}
+  public double getUpgradeTime() {return upgradeTime;}
 
   public static final int TICK_SPEED = 10; //For upgrade/building
 
@@ -121,6 +124,7 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
     this.targetLock = targetLock;
   }
 
+  public int getHp() {return currentHitpoints;}
   public int getDamage() {return damage;}
   public int getRange() {return maxRange;}
   public boolean isAlive() {return this.isDestroyed();}
@@ -131,17 +135,13 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
    * @throws InterruptedException
    */
   public void startUpgradeTime(Troop troop) throws InterruptedException {
-    int maxTicks = Math.round(troop.upgradeTime * TICK_SPEED);
-    int currentTickCount = 0;
-    while (currentTickCount < maxTicks) {
-      currentTickCount++;
-      if ( currentTickCount % 30 == 0) {
-        System.out.println(currentTickCount + "/" + maxTicks);
-      }
-      if (realtime) {
-        Thread.sleep((long) PAUSE_TIME); // realtime.
-      }
+    if (troop.isUpgrading()) {
+      rtx4090TI.append("Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + troop.remainingUpgradeTime);
+      return;
     }
+
+    rtx4090TI.append("upgrading...");
+    doBuildOrUpgrade(troop);
   }
 
 }

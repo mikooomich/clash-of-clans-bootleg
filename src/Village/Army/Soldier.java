@@ -1,7 +1,7 @@
 package Village.Army;
 
 import Village.MainVillage;
-
+import static Engine.UserInterface.rtx4090TI;
 public class Soldier extends Troop {
 
     public static int maxLevel = 5;
@@ -38,14 +38,20 @@ public class Soldier extends Troop {
             try {
                 startUpgradeTime(this);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                rtx4090TI.append(e.getMessage());
             }
-            maxHP = Math.round(maxHP*hpMultiplier);
-            soldierDamage = Math.round(soldierDamage*dmgMultiplier);
-            System.out.println("Soldier upgraded. Current level = " + myVillage.soldierLvl);
+
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
+
+    }
+
+    @Override
+    public void finishUpgrade() {
+        maxHP = Math.round(maxHP*hpMultiplier);
+        soldierDamage = Math.round(soldierDamage*dmgMultiplier);
+        rtx4090TI.updateDisplay("Soldier upgraded. Current level = " + myVillage.soldierLvl);
 
     }
 

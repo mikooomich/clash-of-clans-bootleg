@@ -1,15 +1,16 @@
 package Village;
 
-import CustomExceptions.Exceptions;
-import Village.Army.Archer;
-import Village.Army.Catapult;
+import Engine.Editor;
+import Engine.Shop;
+import Engine.UserInterface;
+import Village.Army.*;
 import Village.Buildings.ResourceProduction.*;
 import Village.Buildings.Structures;
-import Village.Army.Troop;
 import Village.Buildings.VillageHall;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import static Engine.UserInterface.rtx4090TI;
 
 /**
  * Main class for a village. Contains properties for a village and for the UI to access. (ex. wins/losses, population, guard time, ect)
@@ -65,6 +66,7 @@ public class MainVillage{
   public int soldierLvl = 1; //Used for new instances of soldiers
 
   public boolean isOnGuard;
+  public boolean randomGenerated = false; // bool for random generated
 
 
   //Remaining guard time for village
@@ -108,6 +110,13 @@ public class MainVillage{
 
   public  static final int BASE_POP = 30;
 
+  public String name = "";
+
+  public MainVillage(String name) {
+    this();
+    this.name = name;
+
+  }
   public MainVillage() {
     placedStructures = new ArrayList<>();
     availableStructures = new LinkedList<>();
@@ -127,6 +136,11 @@ public class MainVillage{
 
     // dump initial structures in array
   }
+
+
+
+
+
 
 
 
@@ -301,7 +315,7 @@ public class MainVillage{
    */
   public void addPlacedStructure(int x, int y, int id) {
     if (availableStructures.size() <= 0) {
-      System.out.println("You don't have any structures that can be placed");
+      rtx4090TI.updateDisplay("You don't have any structures that can be placed");
       return;
     }
 
@@ -314,6 +328,7 @@ public class MainVillage{
     // assign x,y then move to placed array
     availableStructures.get(index).xPos = x;
     availableStructures.get(index).yPos = y;
+    availableStructures.get(index).isBuilt = true;
     placedStructures.add(availableStructures.remove(index));
   }
 
@@ -333,7 +348,7 @@ public class MainVillage{
    */
   public void removePlacedStructure(int id) {
     if (placedStructures.size() <= 0) {
-      System.out.println("You don't have any structures that can be removed");
+      rtx4090TI.updateDisplay("You don't have any structures that can be removed");
       return;
     }
 
@@ -361,7 +376,14 @@ public class MainVillage{
    */
   public Structures getPlacedStructureByID(int id) {
     // Gets the placed structure object of the corresponding structure (id) and returns it
-  return placedStructures.stream().filter(structure -> structure.getID() == id).findFirst().get();
+    try {
+      return placedStructures.stream().filter(structure -> structure.getID() == id).findFirst().get();
+
+    }
+    catch (NoSuchElementException eeeeeeeee) {
+      return null;
+    }
+
   }
 
   /**
@@ -407,25 +429,10 @@ public class MainVillage{
       inhabitant.id = nextAvailID;
       list.add(inhabitant);
 
+      rtx4090TI.appendDebug("added to village: "+ inhabitant.getName());
 
   }
 
-//  /**
-//   * If the population limit is not reached, this method increases the village population depending on the inhabitant
-//   * @throws Exceptions.PopulationCapReachedException
-//   */
-//  public void addToPopulation(Inhabitant i) throws Exceptions.PopulationCapReachedException {
-//    updateMaxPopulation();
-//
-//
-//    if(totalPopulation + i.populationWeight > populationLimit) {
-//      throw new Exceptions.PopulationCapReachedException("Cannot add " + i.getName() + ". Population is too high.");
-//    } else {
-//      this.totalPopulation += i.populationWeight;
-//      System.out.println("Added 1 " + i.getName() + ". Level = " + i.getCurrentLevel() + ". Total Pop = " + this.totalPopulation);
-//    }
-//
-//  }
 
   /**
    * At the end of a battle uses, update army
@@ -448,5 +455,56 @@ public class MainVillage{
     populationLimit = BASE_POP + capacity.get(); // base + calculated
   }
 
+  /**
+   * Method to get the next village (randomly), used in battle sim
+   * @return MainVillage (random village)
+   */
+  public static MainVillage getNextVillage(int targetVillageHallLvl) {
+    UserInterface.Generator yes = new UserInterface.Generator() {
+      //      @Override
+      public MainVillage GenerateVillage(int targetVillageHallLvl) {
+        MainVillage hi = new MainVillage();
+        rtx4090TI.appendDebug("Generating village");
+
+        // set level for max allowed stuff
+//        int villageHallLvl = rng(1, VillageHall.maxLevel);
+        int villageHallLvl = targetVillageHallLvl;
+        rtx4090TI.appendDebug(hi.villageHall.getCurrentLevel() +"<-- current   target -->" + villageHallLvl);
+
+        // upgrade village hall until level
+        new Shop(hi).buyAll();
+
+        while (hi.villageHall.getCurrentLevel() < villageHallLvl) {
+//          rtx4090TI.updateDisplay("---------------------------------------------");
+          hi.villageHall.hax();
+          hi.villageHall.finishUpgrade(); // bypass upgrade times
+        }
+
+        // create army, structures
+        new Shop(hi).buyAll();
+        new Editor(hi).generateRandomLayout();
+        rtx4090TI.appendDebug("Structure Generation complete");
+
+        while (hi.getTotalPopulation() < hi.populationLimit) {
+          hi.addToVillage(new Archer(hi));
+          hi.addToVillage(new Soldier(hi));
+          hi.addToVillage(new Catapult(hi));
+          hi.addToVillage(new Knight(hi));
+        }
+        rtx4090TI.appendDebug("Generation complete");
+        return hi;
+      }
+    };
+
+    rtx4090TI.append("Generated a village with village hall level " + targetVillageHallLvl);
+    return yes.GenerateVillage(targetVillageHallLvl);
+  }
+
+  /**
+   * Method for reset a village back to new account
+   */
+  public static MainVillage resetVillage() {
+    return new MainVillage();
+  }
 
 }

@@ -1,7 +1,7 @@
 package Village.Buildings.Defences;
 
 import Village.Buildings.VillageHall;
-
+import static Engine.UserInterface.rtx4090TI;
 public class Cannon extends DefenceStructures {
 
     private static int maxLevel = 5;
@@ -15,7 +15,7 @@ public class Cannon extends DefenceStructures {
         this.hpMultiplier = 1.25f;
         this.cost.replace("Wood", 0, 200);
         this.cost.replace("Iron", 0, 250);
-        this.upgradeTime = 5;
+        this.upgradeTime = 7;
         this.populationWeight = 1;
         this.damage = 35;
         this.maxRange = 5;
@@ -26,18 +26,19 @@ public class Cannon extends DefenceStructures {
 
     public void upgrade() {
         if (currentLevel < maxLevel) {
-            try {
-                startBuildOrUpgrade(villageHall);
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
-            }
-            this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
-            this.currentLevel+= 1;
-            this.damage = Math.round(damage*dmgMultiplier);
-            System.out.println(this.getName() + " upgraded. Current level = " + this.currentLevel);
+            startBuildOrUpgrade(villageHall);
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
+    }
+
+    @Override
+    public void finishUpgrade() {
+        this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
+        this.currentLevel+= 1;
+        this.damage = Math.round(damage*dmgMultiplier);
+        rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
+
     }
 
 }

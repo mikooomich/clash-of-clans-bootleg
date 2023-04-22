@@ -6,9 +6,9 @@ import Village.MainVillage;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-import static Engine.UserInterface.rng;
+import static Engine.UserInterface.rtx4090TI;
 import static Village.MainVillage.MAP_SIZE;
-
+import static Engine.UserInterface.rtx4090TI;
 
 /**
  * This class is for customizing a village. A user can change their layout of their village.
@@ -34,40 +34,47 @@ public class Editor implements UiElement {
    * @param x coordinate
    * @param y coordinate
    */
-  public String place(int x, int y, int id)  {
+  public void place(int x, int y, int id, boolean silent)  {
+    boolean valid = false;
     try {
       Structures thisStructure = myVillage.getAvailStructureByID(id);
       if (!thisStructure.isBought()) {
-        return "Unable to place unbought structure";
+        rtx4090TI.append("Unable to place unbought structure");
       }
 
       if (thisStructure != null && isValidPlacement(x, y)) {
         myVillage.addPlacedStructure(x, y, id);
-        thisStructure.startBuildOrUpgrade(myVillage.villageHall);
-        return "Success. Placed id=" + thisStructure.id + "at x/y: " + thisStructure.getXPos() + "/" + thisStructure.getYPos(); // hmmm maybe it would be a good idea to check if the add function fails...
+
+        if (silent) { // for less spam in main window
+          rtx4090TI.appendDebug("Success. Placed id=" + thisStructure.id + "at x/y: " + thisStructure.getXPos() + "/" + thisStructure.getYPos());
+        }
+        else {
+          rtx4090TI.append("Success. Placed id=" + thisStructure.id + "at x/y: " + thisStructure.getXPos() + "/" + thisStructure.getYPos()); // hmmm maybe it would be a good idea to check if the add function fails...
+        }
+
+        valid = true;
       }
     }
     catch (NoSuchElementException e) {
-      return "Please provide a valid index";
+      rtx4090TI.appendDebug("Please provide a valid index");
     } catch (IndexOutOfBoundsException e) {
-      return "Please provide a valid index";
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      rtx4090TI.appendDebug("Please provide a valid index");
     }
-
-    return "Placement failure, INVALID X/Y CO-ORDINATE PAIR";
+    if(!valid) {
+      rtx4090TI.append("Placement failure, INVALID X/Y CO-ORDINATE PAIR");
+    }
   }
 
   /**
    * Method used to remove a structure from a specific spot (x,y)
    */
-  public String remove(int id) {
+  public void remove(int id) {
     try {
       myVillage.removePlacedStructure(id);
-      return "Success";
+      rtx4090TI.append("Success");
     }
     catch (IndexOutOfBoundsException e) {
-      return "Please provide a valid index";
+      rtx4090TI.appendDebug("Please provide a valid index");
     }
   }
 
@@ -108,10 +115,12 @@ public class Editor implements UiElement {
   public void generateRandomLayout() {
     for (Structures buildingSelection: myVillage.getAvailableStructures()) {
       // select random location, place
-      try {
-        place(rng(1, MAP_SIZE-2), rng(1, MAP_SIZE-2), buildingSelection.id );
-      } catch (Exception e) { //CHANGE TO CUSTOM LATER
-        System.out.println("Structure x will not be placed down");
+      if(buildingSelection.isBought()) {
+        try {
+          place(rng(1, MAP_SIZE-2), rng(1, MAP_SIZE-2), buildingSelection.id, true );
+        } catch (Exception e) { //CHANGE TO CUSTOM LATER
+          rtx4090TI.appendDebug("Structure x will not be placed down");
+        }
       }
 
     }
@@ -141,6 +150,15 @@ public class Editor implements UiElement {
     Arrays.stream(myVillage.getPlacedStructures()).forEach(structure -> myVillage.removePlacedStructure(structure.id));
   }
 
+  /**
+   * Random number generator, inclusive
+   * @param min
+   * @param max
+   * @return
+   */
+  public static int rng(int min, int max) {
+    return (int) (Math.random() * (max - min + 1) + min);
+  }
 
 
 

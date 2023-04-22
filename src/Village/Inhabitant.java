@@ -1,5 +1,6 @@
 package Village;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 
 /**
@@ -49,7 +50,8 @@ public abstract class Inhabitant {
   public int populationWeight;
 
   //Troop or Structure upgrade time length
-  public float upgradeTime;
+  public double upgradeTime;
+  public double remainingUpgradeTime;
 
   public String symbol; // what will display on map as
 
@@ -66,10 +68,17 @@ public abstract class Inhabitant {
    */
   public abstract void upgrade();
 
+  public abstract void finishUpgrade();
 
 
 
+public boolean isUpgrading() {
+  if (remainingUpgradeTime > 0) {
+    return true;
+  }
+  return false;
 
+}
 
 
   /**
@@ -128,7 +137,7 @@ public abstract class Inhabitant {
    * Getter method for upgrade time
    * @return upgradeTime
    */
-  public float getUpgradeTime(){return upgradeTime;};
+  public double getUpgradeTime(){return upgradeTime;};
 
   /**
    * Getter method to get entity name

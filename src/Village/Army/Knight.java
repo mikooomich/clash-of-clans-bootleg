@@ -1,7 +1,7 @@
 package Village.Army;
 
 import Village.MainVillage;
-
+import static Engine.UserInterface.rtx4090TI;
 public class Knight extends Troop {
 
     public static int maxLevel = 4;
@@ -39,15 +39,20 @@ public class Knight extends Troop {
             try {
                 startUpgradeTime(this);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                rtx4090TI.append(e.getMessage());
             }
-            maxHP = Math.round(maxHP*hpMultiplier);
-            knightDamage = Math.round(knightDamage*dmgMultiplier);
-            System.out.println("Knight upgraded. Current level = " + myVillage.knightLvl);
+
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
 
+    }
+
+    @Override
+    public void finishUpgrade() {
+        maxHP = Math.round(maxHP*hpMultiplier);
+        knightDamage = Math.round(knightDamage*dmgMultiplier);
+        rtx4090TI.updateDisplay("Knight upgraded. Current level = " + myVillage.knightLvl);
     }
 
 }

@@ -1,11 +1,9 @@
 package Village.Buildings;
 
-import Village.Buildings.ResourceProduction.GoldMine;
-import Village.Buildings.ResourceProduction.IronMine;
-import Village.Buildings.ResourceProduction.LumberMill;
 import Village.Inhabitant;
-import Village.MainVillage;
 
+import static Engine.UserInterface.rtx4090TI;
+import static Engine.VillageSimulator.doBuildOrUpgrade;
 
 /**
  * Super class for all structures as every structure shares these properties. Most are from Inhabitants class as troops also share the same.
@@ -28,7 +26,7 @@ public abstract class Structures extends Inhabitant {
   //Structure current time until completion
   private float timeUntilCompletion;
 
-  public float upgradeTime;
+  public boolean isBuilt = false;
   public boolean isBought = false;
 
   public static final int UPGRADE_COST = 100; // it costs this much of every resource to upgrade
@@ -51,37 +49,33 @@ public abstract class Structures extends Inhabitant {
   return timeUntilCompletion;
   }
 
-  public void startBuildOrUpgrade(VillageHall village) throws InterruptedException {
-    if(village.isAvailableBuilders()) {
-      village.useBuilder();
-      System.out.println(this.getName() + " build/upgrade started.");
-      int maxTicks = Math.round(this.upgradeTime * TICK_SPEED);
-      int currentTickCount = 0;
-      while (currentTickCount < maxTicks) {
-        this.isPaused = true;
-        currentTickCount++;
-        if (realtime && currentTickCount % 30 == 0) {
-          System.out.println(currentTickCount + "/" + maxTicks);
-//        System.out.println(drawMap());
-        }
-//      if (realtime) {
-//        Thread.sleep((long) PAUSE_TIME); // realtime.
-//      }
-      }
-      this.isPaused = false;
-      System.out.println(this.getName() + " build/upgrade completed.");
-      village.buildDone();
-    } else {
-      System.out.println("No builder is available at the moment.");
+  public void startBuildOrUpgrade(VillageHall village) {
+    if (this.isUpgrading()) {
+      rtx4090TI.append("Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + this.remainingUpgradeTime);
+      return;
     }
 
+    if(village.isAvailableBuilders()) {
+      village.useBuilder();
+      rtx4090TI.append(this.getName() + " build/upgrade started.");
+      this.isPaused = true;
+      doBuildOrUpgrade(this);
+    } else {
+      rtx4090TI.append("No builder is available at the moment.");
+    }
   }
 
   public boolean isBought() {
-    return isBought;
+    return this.isBought;
   }
+
+  public boolean getIsBuilt() {return this.isBuilt;}
+
+  public void finishBuild() {isBuilt = true;}
 
   public int getDamage() {
     return 0;
   }
+  public abstract void finishUpgrade();
+
 }

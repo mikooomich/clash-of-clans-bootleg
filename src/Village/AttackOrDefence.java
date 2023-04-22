@@ -11,6 +11,12 @@ public interface AttackOrDefence {
   public int getDamage();
 
   /**
+   * Getter method for the unit's HP
+   */
+  public int getHp();
+
+
+  /**
    * Method to get the range of the unit
    */
   public int getRange();

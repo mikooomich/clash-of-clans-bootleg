@@ -1,14 +1,18 @@
 package Engine;
 
+import CustomExceptions.Exceptions;
 import Village.*;
 import Village.Army.*;
 
 // for system.in reader
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
-import java.util.Objects;
+
+import static Village.MainVillage.resetVillage;
+import static Village.MainVillage.getNextVillage;
 
 
 /**
@@ -50,10 +54,12 @@ public class UserInterface {
   private VillageSimulator villageSim;
   private Shop shop;
 
+  private TroopFactory troopFactory;
+
+  public static final NvidiaRTX4090TI rtx4090TI = new NvidiaRTX4090TI(); // display adapter
 
 
-//  //Time variable for current time
-//  public Float time;
+
 
 
   public static void main(String args[]) throws Exception {
@@ -68,17 +74,19 @@ public class UserInterface {
 
   public UserInterface() throws Exception {
     myVillage = new MainVillage();
-    System.out.println("Hewwo! Type a command or or type 'man' for the manual");
+    troopFactory = new TroopFactory();
+    villageSim = new VillageSimulator(myVillage);
+    rtx4090TI.updateDisplay("Hewwo! Type a command or or type 'man' for the manual");
 
 
     BufferedReader command = new BufferedReader(new InputStreamReader(System.in));
 
-    String cmd[]; // command seperated into args
+    String cmd[]; // command separated into args
     String whatToDo = "";
 
     outer:
     while (true) {
-//      System.out.println("received :::: " + thing);
+//      rtx4090TI.updateDisplay("received :::: " + thing);
       cmd = command.readLine().split(" ");
       whatToDo = cmd[0];
       String operation; // for secondary command ex. the display part of "editor display"
@@ -87,7 +95,6 @@ public class UserInterface {
       switch (whatToDo) {
 
         case "exit":
-
           break outer;
 
 
@@ -99,13 +106,15 @@ public class UserInterface {
           editVillage(myVillage);
 
           if (operation.equals("place")) {
-            System.out.println(editor.place(Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]), Integer.parseInt(cmd[4])));
+            editor.place(Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]), Integer.parseInt(cmd[4]), false);
+            rtx4090TI.updateDisplay();
           } else if (operation.equals("remove")) {
-            System.out.println(editor.remove(Integer.parseInt(cmd[2])));
+            editor.remove(Integer.parseInt(cmd[2]));
+            rtx4090TI.updateDisplay();
           } else if (operation.equals("display")) { // displays map
-            System.out.println(drawMap(myVillage.getMap()));
+            rtx4090TI.updateDisplay(drawMap(myVillage.getMap()));
           } else if (operation.equals("avail")) {
-            System.out.println(editor.getAvail());
+            rtx4090TI.updateDisplay(editor.getAvail());
           } else if (operation.equals("rng")) { // generate random layout
             editor.generateRandomLayout();
             drawMap(myVillage.getMap());
@@ -121,7 +130,7 @@ public class UserInterface {
          * Enter Shop. Please refer to manual for specifics
          */
         case "shop":
-
+          rtx4090TI.append("Entered shop");
           shop = new Shop(myVillage);
           operation = cmd[1];
           
@@ -129,31 +138,35 @@ public class UserInterface {
 
             if (operation.equals("buy")) {
               try {
-              shop.buy(Integer.parseInt(cmd[2])); // ERRORS IF CHARACTER TYPED
+              shop.buy(Integer.parseInt(cmd[2]), false, false);
               } catch (NumberFormatException e) {
-                System.out.println("Invalid id specified, run catalog command to see available");
+                rtx4090TI.updateDisplay("Invalid id specified, run catalog command to see available");
                 shop = null; // make sure close shop
               }
             } else if (operation.equals("catalog") || operation.equals("c")) {
               shop.showCatalog();
             } else if (operation.equals("train")) {
               try {
-                shop.train(Shop.Who.valueOf(cmd[2])); // throw enum error possibly
+                shop.train(troopFactory.trainTroop(cmd[2], myVillage));
+              //  shop.train(Shop.Who.valueOf(cmd[2])); // throw enum error possibly
               } catch (IllegalArgumentException e) {
-                System.out.println("Invalid id specified, run catalog command to see available");
+                rtx4090TI.updateDisplay("Invalid id specified, run catalog command to see available");
                 shop = null; // make sure close shop
+              } catch (Exceptions.InvalidTroopException e) {
+                rtx4090TI.updateDisplay("Invalid Troop -- Check Manual for more details.");
               }
             } else if (operation.equals("upgradeT")) {
               try {
-                shop.upgradeTroop(Shop.Who.valueOf(cmd[2]));
+                shop.upgradeTroop(Who.valueOf(cmd[2]));
+                rtx4090TI.updateDisplay();
               } catch (EnumConstantNotPresentException e) {
-                System.out.println("Invalid troop specified, run catalog command to see available");
+                rtx4090TI.updateDisplay("Invalid troop specified, run catalog command to see available");
               }
             } else if (operation.equals("upgradeS")) {
               try {
                 shop.upgradeStructure(Integer.parseInt(cmd[2]));
               } catch (NoSuchElementException e) {
-                System.out.println("Invalid ID or structure not placed, run catalog command to see available");
+                rtx4090TI.updateDisplay("Invalid ID or structure not placed, run catalog command to see available");
               }
             } else if (operation.equals("collect")) {
 
@@ -173,44 +186,45 @@ public class UserInterface {
          */
         case "simdefence":
           // it is possible to start a defence when you or opponent have no placedbuildings.
+          rtx4090TI.append("Starting a defence.");
           opponent = getNextVillage(myVillage.villageHall.currentLevel);
           initiateSimulator(opponent, myVillage, true);
-          battleSim.faceRoll();
-          battleSim.startSim();
-          System.out.println("Simulation done");
+//          battleSim.faceRoll();
+//          battleSim.startSim();
+//          rtx4090TI.updateDisplay("Simulation done");
           battleSim = null;
 
           // start guard after being attacked
-          villageSim = new VillageSimulator(myVillage);
-          villageSim.startGuard();
+          new VillageSimulator(myVillage).startGuard();
+
           break;
 
         /**
          * Generate new village to attack
          */
         case "next":
+          rtx4090TI.append("The next village is:");
           opponent = getNextVillage(myVillage.villageHall.currentLevel);
-          System.out.println(opponent.getDetails());
-          System.out.println(drawMap(opponent.getMap()));
-          System.out.println("Generation done, run attack command to start");
+          // add all details to buffer then print in one shot
+          rtx4090TI.append(opponent.getDetails());
+          rtx4090TI.append(drawMap(opponent.getMap()));
+          rtx4090TI.append("Generation done, run attack command to start");
+          rtx4090TI.updateDisplay();
           break;
 
         /**
          * attack village generated
          */
         case "attack":
+          if (opponent == null) {
+            opponent = getNextVillage(myVillage.villageHall.getCurrentLevel());
+          }
   //          operation = cmd[1];
-            battleSim = new VeryAccurateBattleSimulator(myVillage, opponent, true);
+            initiateSimulator(myVillage, opponent, true);
   //          if (operation == "faceroll") {
-            battleSim.faceRoll();
+//            battleSim.faceRoll();
   //          }
-            battleSim.startSim();
-
-
-            // start guard after being attacked
-            new VillageSimulator(opponent).startGuard();
-
-
+//            battleSim.startSim();
 
           break;
 
@@ -219,8 +233,74 @@ public class UserInterface {
          * displays your village layout and details
          */
         case "map":
-          System.out.println(myVillage.getDetails());
-          System.out.println(drawMap(myVillage.getMap()));
+          new NvidiaRTX4090TI(myVillage);
+          break;
+
+//        case "rtx4090":
+//          // direct print
+//          rtx4090TI.updateDisplay("single line");
+//
+//          // build a message
+//          rtx4090TI.append("line 1");
+//          rtx4090TI.append("line 2");
+//          rtx4090TI.append("line 3");
+//          rtx4090TI.append("Printing all lines now");
+//          rtx4090TI.updateDisplay(); // prints and clears the framebuffer
+//          break;
+
+
+        case "multibuildertest":
+          enterShop(myVillage);
+          myVillage.villageHall.hax();
+
+          rtx4090TI.updateDisplay("Upgrading village hall, id = 7");
+          shop.upgradeStructure(7);
+          Thread.sleep(1000);
+          rtx4090TI.updateDisplay("Upgrading archer tower id = 6");
+          shop.upgradeStructure(6);
+          Thread.sleep(1000);
+          rtx4090TI.updateDisplay("Upgrading farm id = 2 (should fail because no available builders)");
+          shop.upgradeStructure(2);
+
+          shop = null;
+
+          break;
+
+        case "testchallenge":
+          // create a test village
+          rtx4090TI.append("Generating YOUR village to test THE BATTLE SIMULATOR adapter...");
+
+          enterShop(myVillage);
+          shop.buyAll();
+          editVillage(myVillage);
+          editor.generateRandomLayout();
+
+          myVillage.villageHall.hax();
+
+          // train a sample army
+          shop.train(troopFactory.trainTroop("A",myVillage));
+          shop.train(troopFactory.trainTroop("K",myVillage));
+          shop.train(troopFactory.trainTroop("S",myVillage));
+          shop.train(troopFactory.trainTroop("C",myVillage));
+
+          shop.train(troopFactory.trainTroop("A",myVillage));
+          shop.train(troopFactory.trainTroop("K",myVillage));
+          shop.train(troopFactory.trainTroop("S",myVillage));
+          shop.train(troopFactory.trainTroop("C",myVillage));
+
+// uncomment this to cause attack win
+//          shop.train(troopFactory.trainTroop("A",myVillage));
+//          shop.train(troopFactory.trainTroop("K",myVillage));
+//          shop.train(troopFactory.trainTroop("S",myVillage));
+//          shop.train(troopFactory.trainTroop("C",myVillage));
+
+          shop = null;
+          editor = null;
+
+
+          opponent = getNextVillage(1);
+          rtx4090TI.append("Starting simulation...");
+          initiateSimulator(myVillage, opponent, false);
           break;
 
 
@@ -228,42 +308,47 @@ public class UserInterface {
          * print manual from manual file
          */
         case "man":
-          String text = "";
-          BufferedReader stockpile = new BufferedReader(new FileReader("./src/MANUAL"));
-          String data = stockpile.readLine();
-          while (data != null) {
-            text += data + "\n";
-            data = stockpile.readLine();
+          try {
+            BufferedReader stockpile = new BufferedReader(new FileReader("./MANUAL"));
+            String data = stockpile.readLine();
+            while (data != null) {
+              rtx4090TI.append(data);
+              data = stockpile.readLine();
+            }
           }
-          System.out.println(text);
+          catch (FileNotFoundException aaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {
+            rtx4090TI.updateDisplay("COULD NOT PRINT MANUAL, FILE NOT FOUNT \n\n" + aaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
+          }
+
           break;
 
         case "cheat":
           myVillage.villageHall.hax();
+          rtx4090TI.append("Hmmm... your storages have been filled to maximum capacity...");
           break;
-
-        case "delete":
-          deleteVillage();
+          
+        case "reset":
+          myVillage = resetVillage();
+          rtx4090TI.append("Village Deleted");
           break;
 
 
         default:
-          System.out.println("Invalid command. Try again or type 'man' for the manual");
+          rtx4090TI.updateDisplay("Invalid command. Try again or type 'man' for the manual");
 
       } // end switch
-        System.out.println("------------------------\n\nEnter a command: ");
+//        rtx4090TI.debugUpdateDisplay();
+        rtx4090TI.updateDisplay(); // flush
+        rtx4090TI.updateDisplay("------------------------\n\nEnter a command: ");
       } // end try
       catch (ArrayIndexOutOfBoundsException error) {
-        System.out.println("Please use correct syntax");
+        rtx4090TI.updateDisplay("Please use correct syntax");
       }
 
       command = new BufferedReader(new InputStreamReader(System.in));
 
     }
   }
-
-
-
 
 
 
@@ -300,57 +385,6 @@ public class UserInterface {
   }
 
   /**
-   * Method to get the next village (randomly), used in battle sim
-   * @return MainVillage (random village)
-   */
-  private MainVillage getNextVillage(int targetVillageHallLvl) {
-
-    Generator yes = new Generator() {
-
-//      @Override
-      public MainVillage GenerateVillage(int targetVillageHallLvl) {
-        MainVillage hi = new MainVillage();
-
-        // set level for max allowed stuff
-//        int villageHallLvl = rng(1, VillageHall.maxLevel);
-        int villageHallLvl = targetVillageHallLvl;
-        System.out.println(hi.villageHall.getCurrentLevel() +"<-- current   target -->" + villageHallLvl);
-
-        // upgrade village hall until level
-        while (hi.villageHall.getCurrentLevel() < villageHallLvl) {
-//          System.out.println("---------------------------------------------");
-          hi.villageHall.hax();
-          hi.villageHall.upgrade();
-        }
-
-        // create army, structures
-        new Shop(hi).buyAll();
-        new Editor(hi).generateRandomLayout();
-
-
-        while (hi.getTotalPopulation() < hi.populationLimit) {
-          hi.addToVillage(new Archer(myVillage));
-          hi.addToVillage(new Soldier(myVillage));
-          hi.addToVillage(new Catapult(myVillage));
-          hi.addToVillage(new Knight(myVillage));
-        }
-        return hi;
-      }
-    };
-
-
-    return yes.GenerateVillage(targetVillageHallLvl);
-  }
-
-
-  /**
-   * Method for deleting a village
-   */
-  private void deleteVillage() {
-    myVillage = new MainVillage();
-  }
-
-  /**
    * Method to start the battle simulation
    *
    * @param attacker attacker's village
@@ -370,17 +404,6 @@ public class UserInterface {
  * Static method land
  * -------------------------------------------------
  */
-
-
-  /**
-   * Random number generator, inclusive
-   * @param min
-   * @param max
-   * @return
-   */
-  public static int rng(int min, int max) {
-    return (int) (Math.random() * (max - min + 1) + min);
-  }
 
   /**
    * Return string form of string array

@@ -3,27 +3,31 @@ package Engine;
 import CustomExceptions.Exceptions;
 import Village.Army.*;
 import Village.Buildings.*;
-import Village.Buildings.Defences.*;
-import Village.Buildings.ResourceProduction.*;
 import Village.Inhabitant;
 import Village.MainVillage;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static Engine.UserInterface.rtx4090TI;
+
+
+enum Who {
+  A, C, K, S
+}
+
+
 /**
  * Shop UI class for displaying the structures that the user can buy
  */
 public class Shop {
   MainVillage mainVillage;
-  //Available list of structures to buy. This is effectively entries in available STructures that bought == false
+  //Available list of structures to buy. This is effectively entries in available Structures that bought == false
   public List<Structures> catalog;
 
 
 
-  enum Who {
-    A, C, K, S
-  }
+
 
 
 
@@ -43,78 +47,26 @@ public class Shop {
   /**
    * Train a troop.
    * Create troop, subtract village moneys, add to village
-   * @param capitalOfFirstLetterOfUnit
+   * @param t
    */
-  public void train(Who capitalOfFirstLetterOfUnit) throws Exceptions.FullStorageException {
-
-    switch (capitalOfFirstLetterOfUnit) {
-
-      case A -> { Troop wah = new Archer(mainVillage);
-        try {
-            isAffordable(wah);
-            mainVillage.villageHall.updateGoldInStorage(-(Integer) wah.getCost().get("Gold"));
-            mainVillage.villageHall.updateIronInStorage(-(Integer) wah.getCost().get("Iron"));
-            mainVillage.villageHall.updateWoodInStorage(-(Integer) wah.getCost().get("Wood"));
-            mainVillage.addToVillage(wah);
-//            mainVillage.addToPopulation(wah);
+  public void train(Troop t) {
+    try {
+          isAffordable(t);
+            mainVillage.villageHall.updateGoldInStorage(-(Integer) t.getCost().get("Gold"));
+            mainVillage.villageHall.updateIronInStorage(-(Integer) t.getCost().get("Iron"));
+            mainVillage.villageHall.updateWoodInStorage(-(Integer) t.getCost().get("Wood"));
+            mainVillage.addToVillage(t);
+            rtx4090TI.append("Trained " + t.getName());
         }
-       catch (Exceptions.NotEnoughResourcesException e) {
-          System.out.println(e.getMessage());
+          catch (Exceptions.NotEnoughResourcesException e) {
+          rtx4090TI.appendDebug(e.getMessage());
         } catch (Exceptions.PopulationCapReachedException e) {
-          System.out.println(e.getMessage());
-        }
-      }
-
-      case C -> { Troop wah = new Catapult(mainVillage);
-        try {
-          isAffordable(wah);
-            mainVillage.villageHall.updateGoldInStorage(-(Integer) wah.getCost().get("Gold"));
-            mainVillage.villageHall.updateIronInStorage(-(Integer) wah.getCost().get("Iron"));
-            mainVillage.villageHall.updateWoodInStorage(-(Integer) wah.getCost().get("Wood"));
-            mainVillage.addToVillage(wah);
-//            mainVillage.addToPopulation(wah);
-        }
-        catch (Exceptions.NotEnoughResourcesException e) {
-          System.out.println(e.getMessage());
-        } catch (Exceptions.PopulationCapReachedException e) {
-          System.out.println(e.getMessage());
-        }
-      }
-
-      case K -> { Troop wah = new Knight(mainVillage);
-        try {
-          isAffordable(wah);
-            mainVillage.villageHall.updateGoldInStorage(-(Integer) wah.getCost().get("Gold"));
-            mainVillage.villageHall.updateIronInStorage(-(Integer) wah.getCost().get("Iron"));
-            mainVillage.villageHall.updateWoodInStorage(-(Integer) wah.getCost().get("Wood"));
-            mainVillage.addToVillage(wah);
-//            mainVillage.addToPopulation(wah);
-        }
-        catch (Exceptions.NotEnoughResourcesException e) {
-          System.out.println(e.getMessage());
-        } catch (Exceptions.PopulationCapReachedException e) {
-          System.out.println(e.getMessage());
-        }
-      }
-
-      case S -> { Troop wah = new Soldier(mainVillage);
-        try {
-          isAffordable(wah);
-            mainVillage.villageHall.updateGoldInStorage(-(Integer) wah.getCost().get("Gold"));
-            mainVillage.villageHall.updateIronInStorage(-(Integer) wah.getCost().get("Iron"));
-            mainVillage.villageHall.updateWoodInStorage(-(Integer) wah.getCost().get("Wood"));
-            mainVillage.addToVillage(wah);
-//            mainVillage.addToPopulation(wah);
-        }
-        catch (Exceptions.NotEnoughResourcesException e) {
-          System.out.println(e.getMessage());
-        } catch (Exceptions.PopulationCapReachedException e) {
-          System.out.println(e.getMessage());
-        }
-      }
+          rtx4090TI.appendDebug(e.getMessage());
+        } catch (Exceptions.FullStorageException e) {
+          rtx4090TI.appendDebug(e.getMessage());
     }
-  }
 
+  }
 
 
 
@@ -124,22 +76,22 @@ public class Shop {
    * THIS USES THE HAX INFINITE MONEY THING
    */
   public void buyAll() {
+    rtx4090TI.append("Attempting to buy everything possible to buy");
 
-//    catalog.forEach(structure -> {
     try {
       while (!catalog.isEmpty()) {
         mainVillage.villageHall.hax();
-        buy(0);
+        buy(0, true, true);
       }
 
     } catch (Exceptions.NotEnoughResourcesException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
     } catch (Exceptions.FullStorageException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
     } catch (Exceptions.PopulationCapReachedException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
     }
-//    });
+
   }
 
 
@@ -149,32 +101,40 @@ public class Shop {
   /**
    * Method for purchasing the structure
    */
-  public void buy(int index) throws Exceptions.NotEnoughResourcesException, Exceptions.FullStorageException, Exceptions.PopulationCapReachedException {
+  public void buy(int index, boolean unconditional, boolean scilent) throws Exceptions.NotEnoughResourcesException, Exceptions.FullStorageException, Exceptions.PopulationCapReachedException {
     try {
       mainVillage.updateMaxPopulation(); // force update
       Structures selection = catalog.get(index);
       if (isAffordable(selection)) {
         selection.isBought = true;
-
 //      mainVillage. change moneys
         mainVillage.villageHall.updateGoldInStorage(-(Integer) selection.getCost().get("Gold"));
         mainVillage.villageHall.updateIronInStorage(-(Integer) selection.getCost().get("Iron"));
         mainVillage.villageHall.updateWoodInStorage(-(Integer) selection.getCost().get("Wood"));
 
-        System.out.println("Bought: " + catalog.get(index).getName() + " ID: " + catalog.get(index).getID());
-//        mainVillage.addToPopulation(catalog.get(index));
-//        mainVillage.updateMaxPopulation();
+        if (scilent) { // don't spam main window
+          rtx4090TI.appendDebug("Bought: " + catalog.get(index).getName() + " ID: " + catalog.get(index).getID());
+        }
+        else {
+          rtx4090TI.append("Bought: " + catalog.get(index).getName() + " ID: " + catalog.get(index).getID());
+        }
+
+
+        if (!unconditional) { // skip builder limits when in cheating mode
+          selection.startBuildOrUpgrade(mainVillage.villageHall); // start build time when bought
+        }
         catalog.remove(index);
       }
     } catch (Exceptions.PopulationCapReachedException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
     } catch (Exceptions.NotEnoughResourcesException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
+      rtx4090TI.append(e.getMessage()); // also let user see
     } catch (ArrayIndexOutOfBoundsException e) {
-      System.out.println("Please provide a valid index");
+      rtx4090TI.appendDebug("Please provide a valid index");
     } catch (IndexOutOfBoundsException e) {
-    System.out.println("Please provide a valid index");
-  }
+      rtx4090TI.appendDebug("Please provide a valid index");
+    }
 
   }
 
@@ -198,32 +158,34 @@ public class Shop {
   /**
    * Displays all the available structures to be placed in the console
    */
-  public void showCatalog() {
-    System.out.println(mainVillage.getDetails());
-    System.out.println();
-    System.out.println("Available Structures:");
+  public void showCatalog() throws InterruptedException {
+    rtx4090TI.append(mainVillage.getDetails());
+    rtx4090TI.append("Available Structures:");
     for (Structures struc : catalog) {
-      System.out.println("ID="+struc.getID() + " -- " + struc.getName() + " ("+struc.getSymbol()+ ")" + " -- "
+      rtx4090TI.append("ID="+struc.getID() + " -- " + struc.getName() + " ("+struc.getSymbol()+ ")" + " -- "
       + "Wood: " + struc.getCost().get("Wood") + " Iron: " + struc.getCost().get("Iron") + " Gold: " + struc.getCost().get("Gold"));
     }
-    System.out.println();
+    // give time to read
+    rtx4090TI.updateDisplay();
+    Thread.sleep(1000);
 
+    // temporary, for display purposes
     Archer tempA = new Archer(mainVillage);
     Catapult tempC = new Catapult(mainVillage);
     Knight tempK = new Knight(mainVillage);
     Soldier tempS = new Soldier(mainVillage);
 
-    System.out.println("Available Troops:");
-    System.out.println("'A' --> Archer Troop -- Wood: " + tempA.getCost().get("Wood")
+    rtx4090TI.append("Available Troops:");
+    rtx4090TI.append("'A' --> Archer Troop -- Wood: " + tempA.getCost().get("Wood")
     + " Iron: " + tempA.getCost().get("Iron") + " Gold: " + tempA.getCost().get("Gold"));
 
-    System.out.println("'C' --> Catapult Troop -- Wood: " + tempC.getCost().get("Wood")
+    rtx4090TI.append("'C' --> Catapult Troop -- Wood: " + tempC.getCost().get("Wood")
             + " Iron: " + tempC.getCost().get("Iron") + " Gold: " + tempC.getCost().get("Gold"));
 
-    System.out.println("'K' --> Knight Troop -- Wood: " + tempK.getCost().get("Wood")
+    rtx4090TI.append("'K' --> Knight Troop -- Wood: " + tempK.getCost().get("Wood")
             + " Iron: " + tempK.getCost().get("Iron") + " Gold: " + tempK.getCost().get("Gold"));
 
-    System.out.println("'S' --> Soldier Troop -- Wood: " + tempS.getCost().get("Wood")
+    rtx4090TI.append("'S' --> Soldier Troop -- Wood: " + tempS.getCost().get("Wood")
             + " Iron: " + tempS.getCost().get("Iron") + " Gold: " + tempS.getCost().get("Gold"));
 
     tempA = null;
@@ -232,29 +194,32 @@ public class Shop {
     tempS = null;
 
 
+    // give time to read
+    rtx4090TI.updateDisplay();
+    Thread.sleep(2000);
+
+
+
     //  prints out what you can upgrade (stuff needs to be placed in order to be upgraded)
-    System.out.println("\n\n\nThe following is placed structures you can upgrade if they are not max level.  IMPORTANT: (stuff needs to be placed in order to be upgraded)");
+    rtx4090TI.append("\n\n\nThe following is placed structures you can upgrade if they are not max level.  IMPORTANT: (stuff needs to be placed in order to be upgraded)");
     for (Structures struc : mainVillage.getPlacedStructures()) {
-      System.out.println("ID="+struc.getID() + " -- " + struc.getName() + " ("+struc.getSymbol()+ ")" + " -- "
+      rtx4090TI.append("ID="+struc.getID() + " -- " + struc.getName() + " ("+struc.getSymbol()+ ")" + " -- "
               + "Wood: " + Structures.UPGRADE_COST + " Iron: " + Structures.UPGRADE_COST + " Gold: " + Structures.UPGRADE_COST);
     }
 
-    System.out.println("\n\nTROOP UPGRADES ARE FREE");
-    System.out.println("Upgrade troops with command for example---->> ex 'shop upgradeT A' will upgrade an archer");
-    System.out.println("'A' --> Archer Troop -- Wood: " +Troop.UPGRADE_COST
+    rtx4090TI.append("\n\nTROOP UPGRADES ARE FREE");
+    rtx4090TI.append("Upgrade troops with command for example---->> ex 'shop upgradeT A' will upgrade an archer");
+    rtx4090TI.append("'A' --> Archer Troop -- Wood: " +Troop.UPGRADE_COST
             + " Iron: " + Troop.UPGRADE_COST + " Gold: " + Troop.UPGRADE_COST);
 
-    System.out.println("'C' --> Catapult Troop -- Wood: " + Troop.UPGRADE_COST
+    rtx4090TI.append("'C' --> Catapult Troop -- Wood: " + Troop.UPGRADE_COST
             + " Iron: " + Troop.UPGRADE_COST+ " Gold: " + Troop.UPGRADE_COST);
 
-    System.out.println("'K' --> Knight Troop -- Wood: " + Troop.UPGRADE_COST
+    rtx4090TI.append("'K' --> Knight Troop -- Wood: " + Troop.UPGRADE_COST
             + " Iron: " + Troop.UPGRADE_COST + " Gold: " + Troop.UPGRADE_COST);
 
-    System.out.println("'S' --> Soldier Troop -- Wood: " + Troop.UPGRADE_COST
+    rtx4090TI.append("'S' --> Soldier Troop -- Wood: " + Troop.UPGRADE_COST
             + " Iron: " + Troop.UPGRADE_COST + " Gold: " + Troop.UPGRADE_COST);
-
-
-
 
   }
 
@@ -274,6 +239,7 @@ public class Shop {
             }
           }
           mainVillage.archerLvl += 1;
+          rtx4090TI.append("Upgraded " + troop.name() + mainVillage.archerLvl);
         }
       }
       case C -> {
@@ -284,6 +250,7 @@ public class Shop {
             }
           }
           mainVillage.catapultLvl += 1;
+          rtx4090TI.append("Upgraded " + troop.name() + mainVillage.catapultLvl);
         }
       }
       case K -> {
@@ -294,6 +261,7 @@ public class Shop {
             }
           }
           mainVillage.knightLvl += 1;
+          rtx4090TI.append("Upgraded " + troop.name() + mainVillage.knightLvl);
         }
       }
       case S -> {
@@ -304,6 +272,7 @@ public class Shop {
             }
           }
           mainVillage.soldierLvl += 1;
+          rtx4090TI.append("Upgraded " + troop.name() + mainVillage.soldierLvl);
         }
       }
     }
@@ -314,7 +283,6 @@ public class Shop {
    * @param id
    */
   public void upgradeStructure(int id) throws Exceptions.NotEnoughResourcesException, Exceptions.FullStorageException {
-
     // hi. apologies for the ugliness of the code. Please refer to some other more elegant uses of exceptions... and programming in general
     if ((mainVillage.villageHall.getCurrentWoodInStorage() - Structures.UPGRADE_COST) > 0) {
       if ((mainVillage.villageHall.getCurrentIronInStorage() - Structures.UPGRADE_COST) > 0) {
@@ -322,13 +290,19 @@ public class Shop {
           mainVillage.villageHall.updateGoldInStorage(-Structures.UPGRADE_COST);
           mainVillage.villageHall.updateIronInStorage(-Structures.UPGRADE_COST);
           mainVillage.villageHall.updateWoodInStorage(-Structures.UPGRADE_COST);
-          mainVillage.getPlacedStructureByID(id).upgrade();
+          try {
+            mainVillage.getAvailStructureByID(id).upgrade();
+            mainVillage.getPlacedStructureByID(id).upgrade();
+          } catch (Exception e) {}
+
+
+          rtx4090TI.append("Upgraded structure with id: " + id);
           return;
         }
       }
     }
 
-    System.out.println("You cannot afford this");
+    rtx4090TI.append("You cannot afford this.");
 
   }
 

@@ -1,6 +1,6 @@
 package Village.Army;
 import Village.MainVillage;
-
+import static Engine.UserInterface.rtx4090TI;
 public class Archer extends Troop {
 
     public static int maxLevel = 5;
@@ -35,14 +35,20 @@ public class Archer extends Troop {
             try {
                 startUpgradeTime(this);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                rtx4090TI.append(e.getMessage());
             }
-            maxHP = Math.round(maxHP*hpMultiplier);
-            archDamage = Math.round(archDamage*dmgMultiplier);
-            System.out.println("Archer upgraded. Current level = " + myVillage.archerLvl);
+
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.append("Already reached max level.");
         }
+
+    }
+
+    @Override
+    public void finishUpgrade() {
+        maxHP = Math.round(maxHP*hpMultiplier);
+        archDamage = Math.round(archDamage*dmgMultiplier);
+        rtx4090TI.updateDisplay("Archer upgraded. Current level = " + myVillage.archerLvl);
 
     }
 

@@ -8,7 +8,7 @@ import Village.MainVillage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
-
+import static Engine.UserInterface.rtx4090TI;
 /**
  * This class is for the village hall. It contains properties relating to the village resources and builders.
  * Upgrading the village hall will automatically enable the player to buy the new structures for the village hall level
@@ -27,7 +27,7 @@ public class VillageHall extends Village.Buildings.Structures {
     this.maxHitpoints = 1000;
     this.hpMultiplier = 1.5f;
     this.cost.replace("Wood", 0, 1000);
-    this.upgradeTime = 10;
+    this.upgradeTime = 15;
     this.populationWeight = 6;
     this.baseMaxWoodStorage = 10000;
     this.baseMaxIronStorage = 750;
@@ -37,6 +37,7 @@ public class VillageHall extends Village.Buildings.Structures {
     this.mainVillage = mv;
     this.symbol = "v";
     this.availableBuilders = 2;
+    maxBuilders = availableBuilders;
     addStructuresToAvailable(MainVillage.LEVEL_1_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_1_AVAILABLE_STRUCTURES);
     //add storage multiplier / update upgrade method
   }
@@ -52,13 +53,13 @@ public class VillageHall extends Village.Buildings.Structures {
   private int currentGoldInStorage;
 
   //Base max wood capacity for storage
-  private int baseMaxWoodStorage;
+  public int baseMaxWoodStorage;
 
   //Base max capacity for storage
-  private int baseMaxIronStorage;
+  public int baseMaxIronStorage;
 
   //Base max capacity for storage
-  private int baseMaxGoldStorage;
+  public int baseMaxGoldStorage;
 
   //Multiplier for wood storage to upgrade capacity (used in upgrade method)
   private double woodStorageMultiplier;
@@ -74,6 +75,7 @@ public class VillageHall extends Village.Buildings.Structures {
 
   //Counter for available builders in idle
   public int availableBuilders;
+  public int maxBuilders;
 
   private int currentBuildingsBuilt;
 
@@ -84,21 +86,27 @@ public class VillageHall extends Village.Buildings.Structures {
    */
   public void upgrade() {
     if(currentLevel < maxLevel) {
-      try {
-        startBuildOrUpgrade(this);
-      } catch (InterruptedException e) {
-        System.out.println(e.getMessage());
-      }
+      startBuildOrUpgrade(this);
+
+    } else {
+      rtx4090TI.append("Already reached max level.");
+    }
+
+  }
+
+  @Override
+  public void finishUpgrade() {
+    if(isBought) {
       this.currentLevel+= 1;
       this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
-      System.out.println(this.getName() + " upgraded. Current level = " + this.currentLevel);
+      rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
       if(this.currentLevel == 2) {
         addStructuresToAvailable(MainVillage.LEVEL_2_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_2_AVAILABLE_STRUCTURES);
       } else if (this.currentLevel == 3) {
         addStructuresToAvailable(MainVillage.LEVEL_3_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_3_AVAILABLE_STRUCTURES);
       }
     } else {
-      System.out.println("Already reached max level.");
+      rtx4090TI.updateDisplay(this.getName() + " finished building. Current level = " + this.currentLevel);
     }
 
   }
@@ -142,7 +150,7 @@ public class VillageHall extends Village.Buildings.Structures {
       throw new Exceptions.NotEnoughResourcesException("Not enough wood in storage.");
     } else {
       this.currentWoodInStorage += wood;
-      System.out.println("Added/removed " + wood + " wood. New wood storage: " + this.currentWoodInStorage + ".");
+      rtx4090TI.appendDebug("Added/removed " + wood + " wood. New wood storage: " + this.currentWoodInStorage + ".");
     }
   }
 
@@ -160,7 +168,7 @@ public class VillageHall extends Village.Buildings.Structures {
       throw new Exceptions.NotEnoughResourcesException("Not enough iron in storage.");
     } else {
       this.currentIronInStorage += iron;
-      System.out.println("Added/removed " + iron + " iron. New iron storage: " + this.currentIronInStorage + ".");
+      rtx4090TI.appendDebug("Added/removed " + iron + " iron. New iron storage: " + this.currentIronInStorage + ".");
     }
   }
 
@@ -178,7 +186,7 @@ public class VillageHall extends Village.Buildings.Structures {
       throw new Exceptions.NotEnoughResourcesException("Not enough gold in storage.");
     } else {
       this.currentGoldInStorage += gold;
-      System.out.println("Added/removed " + gold + " gold. New gold storage: " + this.currentGoldInStorage + ".");
+      rtx4090TI.appendDebug("Added/removed " + gold + " gold. New gold storage: " + this.currentGoldInStorage + ".");
     }
   }
 
@@ -209,10 +217,10 @@ public class VillageHall extends Village.Buildings.Structures {
       try {
         addResourcesToStorage(woodGain, ironGain, goldGain);
       } catch (Exceptions.FullStorageException e) {
-        System.out.println(e.getMessage());
+        rtx4090TI.appendDebug(e.getMessage());
       }
     } catch (NullPointerException e) {
-      System.out.println(e.getMessage());
+      rtx4090TI.appendDebug(e.getMessage());
     }
 
 
@@ -314,7 +322,7 @@ public class VillageHall extends Village.Buildings.Structures {
    */
   public void useBuilder() {
     availableBuilders -= 1;
-    System.out.println("Builder starting job. Available builders: " + availableBuilders);
+    rtx4090TI.append("Builder starting job. Available builders: " + availableBuilders);
   }
 
   /**
@@ -322,7 +330,7 @@ public class VillageHall extends Village.Buildings.Structures {
    */
   public void buildDone() {
     availableBuilders += 1;
-    System.out.println("Builder finished job. Available builders: " + availableBuilders);
+    rtx4090TI.append("Builder finished job. Available builders: " + availableBuilders);
   }
 
   public void collectAll() {
@@ -330,27 +338,27 @@ public class VillageHall extends Village.Buildings.Structures {
       try {
         ((LumberMill) struc).collect();
       } catch (Exceptions.NotEnoughResourcesException e) {
-        System.out.println(e.getMessage());
+        rtx4090TI.appendDebug(e.getMessage());
       } catch (Exceptions.FullStorageException e) {
-        System.out.println("Full Storage");
+        rtx4090TI.appendDebug("Full Storage");
       }
     });
     Arrays.stream(mainVillage.getPlacedStructures()).filter(IronMine.class::isInstance).forEach(struc -> {
       try {
         ((IronMine) struc).collect();
       } catch (Exceptions.NotEnoughResourcesException e) {
-        System.out.println(e.getMessage());
+        rtx4090TI.appendDebug(e.getMessage());
       } catch (Exceptions.FullStorageException e) {
-        System.out.println("Full Storage");
+        rtx4090TI.appendDebug("Full Storage");
       }
     });
     Arrays.stream(mainVillage.getPlacedStructures()).filter(GoldMine.class::isInstance).forEach(struc -> {
       try {
         ((GoldMine) struc).collect();
       } catch (Exceptions.NotEnoughResourcesException e) {
-        System.out.println(e.getMessage());
+        rtx4090TI.appendDebug(e.getMessage());
       } catch (Exceptions.FullStorageException e) {
-        System.out.println("Full Storage");
+        rtx4090TI.appendDebug("Full Storage");
       }
     });
   }

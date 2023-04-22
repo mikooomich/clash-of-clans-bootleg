@@ -32,6 +32,7 @@ public abstract class DefenceStructures extends Village.Buildings.Structures imp
   public int getDamage() {
     return damage;
   }
+  public int getHp() {return currentHitpoints;}
 
   public int getRange() {
 

@@ -4,6 +4,7 @@ ex. 'editor place 4' --> this will place structure with id 4, DO NOT TYPE 'edito
 
 
 map ---- display village AND village details including guard status
+exit ---- Saves the current state of the village and exits the game
 
 next ---- get new village to attack.
 attack ---- attack enter attack with this village, this auto deploys troops
@@ -30,7 +31,7 @@ shop upgradeS <id>---- upgrade a structure
 
 
 ------------CHEAT ZONE-------------
-delete ---- resets ALL OF your village progress
+reset ---- resets ALL OF your village progress
 cheat ---- fill storages to max... hey no cheating!
 shop BUYALL ---- buys everything in the shop and runs the cheat command.... hey no cheating
 NOT IMPLEMENTED timeGlitch ---- bypass wait times

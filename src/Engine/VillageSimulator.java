@@ -1,8 +1,11 @@
 package Engine;
 
 import Village.Inhabitant;
-import Village.Buildings.Structures;
 import Village.MainVillage;
+
+import java.util.LinkedList;
+import java.util.List;
+import static Engine.UserInterface.rtx4090TI;
 
 /**
  * Controls the village guard and upgrades / builds
@@ -10,31 +13,41 @@ import Village.MainVillage;
 public class VillageSimulator {
   private MainVillage mainVillage;
 
-  public static final int TICK_SPEED = 10;
+  public static final int TICK_SPEED = 1;
   public static final int MAX_GUARD_TIME_SECONDS = 20;
   public static final int MAX_ALLOWED_TICKS = TICK_SPEED * MAX_GUARD_TIME_SECONDS; // for guard time
   public static final double PAUSE_TIME = Math.floor((Double.valueOf(1)/ TICK_SPEED) * 1000); // pause time between ticks in ms
 
-  boolean realtime = true;
+  final boolean realtime = true;
+
+  protected static List<Inhabitant> needUpgradOrBuild;
+
+  protected static List<Inhabitant> needGuard;
 
   public VillageSimulator(MainVillage mv) {
     this.mainVillage = mv;
+
+    needGuard = new LinkedList<>();
+    needUpgradOrBuild = new LinkedList<>();
+
   }
   /**
    * Starts the village guard time
    */
   public void startGuard() throws InterruptedException {
+    rtx4090TI.updateDisplay("Starting Guard");
     mainVillage.isOnGuard = true;
     int currentTickCount = 0;
     while (currentTickCount < MAX_ALLOWED_TICKS) {
       currentTickCount++;
-      if (realtime && currentTickCount % 30 == 0) {
-        System.out.println(currentTickCount + "/" + MAX_ALLOWED_TICKS + " Guard time");
+      if (realtime && currentTickCount % 5 == 0) {
+        rtx4090TI.updateDisplay(currentTickCount + "/" + MAX_ALLOWED_TICKS + " Guard time");
       }
       if (realtime) {
         Thread.sleep((long) PAUSE_TIME); // realtime.
       }
     }
+    rtx4090TI.updateDisplay("Guard End");
   }
 
   /**
@@ -43,20 +56,30 @@ public class VillageSimulator {
   public void endGuard() {
   }
 
-  /**
-   * Upgrades a unit (either structure or troop)
-   * @param entity
-   */
-  public void doUpgrade(Inhabitant entity) {
-    entity.upgrade();
-  }
+//  /**
+//   * Upgrades a unit (either structure or troop)
+//   * @param entity
+//   */
+//  public void doUpgrade(Inhabitant entity) {
+//    entity.upgrade();
+//  }
 
   /**
-   * Starts a structure build
-   * @param structure
+   * Starts a entity build
+   * This method adds the entity to the tick array, the async clock is a singleton that will tick the structures.
+   * @param entity
    */
-  public void doBuild(Structures structure) throws InterruptedException {
-    structure.startBuildOrUpgrade(mainVillage.villageHall);
+  public static void doBuildOrUpgrade(Inhabitant entity) {
+    entity.remainingUpgradeTime = entity.upgradeTime;
+    if (needUpgradOrBuild.size() <= 0) { // you get some scary error with immutable error without this idk
+      needUpgradOrBuild = new LinkedList<>();
+    }
+    needUpgradOrBuild.add(entity);
+
+    // start ticking
+    rtx4090TI.updateDisplay("Starting build or upgrade for " + entity.getName() + "id=" + entity.getID());
+    AsyncClock.idk();
   }
+
 
 }

@@ -115,4 +115,17 @@ public class Exceptions {
         }
     }
 
+    /**
+     * Exception should be raised when the troop entered doesn't exist
+     */
+    public static class InvalidTroopException extends Exception {
+        public InvalidTroopException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public InvalidTroopException(String message) {
+            super(message);
+        }
+    }
+
 }

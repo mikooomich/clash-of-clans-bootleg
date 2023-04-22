@@ -2,7 +2,7 @@ package Village.Buildings.ResourceProduction;
 
 import CustomExceptions.Exceptions;
 import Village.Buildings.VillageHall;
-
+import static Engine.UserInterface.rtx4090TI;
 public class GoldMine extends Production {
 
     private static int maxLevel = 2;
@@ -27,18 +27,23 @@ public class GoldMine extends Production {
 
     public void upgrade() {
         if(currentLevel < maxLevel) {
-            try {
-                startBuildOrUpgrade(villageHall);
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
-            }
+            startBuildOrUpgrade(villageHall);
+        } else {
+            rtx4090TI.append("Already reached max level.");
+        }
+    }
+
+    @Override
+    public void finishUpgrade() {
+        if(isBought) {
             this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
             this.currentLevel+= 1;
             this.productionRate = Math.round(productionRate*productionRateMutliplier);
-            System.out.println(this.getName() + " upgraded. Current level = " + this.currentLevel);
+            rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
         } else {
-            System.out.println("Already reached max level.");
+            rtx4090TI.updateDisplay(this.getName() + " finished building. Current level = " + this.currentLevel);
         }
+
     }
 
     public void startTimeStamp() {
