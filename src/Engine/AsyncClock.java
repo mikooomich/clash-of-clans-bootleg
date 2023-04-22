@@ -6,12 +6,11 @@ import Village.Inhabitant;
 import java.util.LinkedList;
 import java.util.List;
 
-import static Engine.UserInterface.rtx4090TI;
 import static Engine.VillageSimulator.TICK_SPEED;
 import static Engine.VillageSimulator.needUpgradOrBuild;
-import static Engine.UserInterface.rtx4090TI;
 
 public class AsyncClock extends Thread {
+
     private static AsyncClock instance = null;
 
     protected AsyncClock() {
@@ -19,8 +18,8 @@ public class AsyncClock extends Thread {
             @Override
             public void run() {
                 try {
-                    rtx4090TI.appendDebug("starting clock");
-                    rtx4090TI.debugUpdateDisplay();
+//                    rtx4090TI.appendDebug("starting clock");
+//                    rtx4090TI.debugUpdateDisplay();
                     buildTick();
                 } catch(InterruptedException e) {
                     e.printStackTrace();
@@ -33,7 +32,7 @@ public class AsyncClock extends Thread {
     }
 
     public static void idk() {
-        if (instance == null) {
+        if (instance == null || needUpgradOrBuild.size() <= 0) {
             instance = new AsyncClock();
         }
     }
@@ -49,7 +48,7 @@ public class AsyncClock extends Thread {
 
             needUpgradOrBuild.forEach(entity -> {
                 entity.remainingUpgradeTime -= TICK_SPEED;
-                rtx4090TI.debugUpdateDisplay(entity.remainingUpgradeTime + " id=" + entity.getID());
+//                rtx4090TI.debugUpdateDisplay(entity.remainingUpgradeTime + " id=" + entity.getID());
             });
 
 
@@ -59,16 +58,14 @@ public class AsyncClock extends Thread {
                 if (thing instanceof Structures struct) {
                     if (struct.getIsBuilt()) {  // upgrade if building only if is built already.
                         struct.finishUpgrade();
-                        rtx4090TI.updateDisplay("Upgrade Finished");
                     } else {
-                        struct.isBought = true;
-                        struct.finishBuild();
-                        rtx4090TI.updateDisplay("Build Finished");
+//                        struct.finishBuild();
+                        struct.finishUpgrade();
                     }
+
                 }
                 else {
                     thing.finishUpgrade();
-                    rtx4090TI.updateDisplay("Upgrade Finished");
                 }
             });
 
@@ -77,14 +74,16 @@ public class AsyncClock extends Thread {
            needUpgradOrBuild = new LinkedList<>();
            temp.stream().filter(cursor -> cursor.remainingUpgradeTime > 0).forEach(inh -> needUpgradOrBuild.add(inh));
 
-           rtx4090TI.debugUpdateDisplay("Finished iteration " + iteration);
+//           rtx4090TI.debugUpdateDisplay("Finished iteration " + iteration);
            iteration ++;
 //            if (realtime) {
                 Thread.sleep(1000); // realtime, 1 second
 //            }
+            System.out.println("size " + needUpgradOrBuild.size());
         }
 
         instance = null; // kill clock instance
-        rtx4090TI.debugUpdateDisplay("killing clock");
+//        rtx4090TI.debugUpdateDisplay("killing clock");
+        System.out.println("ending clock");
     }
 }

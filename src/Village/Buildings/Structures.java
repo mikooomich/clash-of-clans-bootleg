@@ -2,7 +2,6 @@ package Village.Buildings;
 
 import Village.Inhabitant;
 
-import static Engine.UserInterface.rtx4090TI;
 import static Engine.VillageSimulator.doBuildOrUpgrade;
 
 /**
@@ -33,9 +32,6 @@ public abstract class Structures extends Inhabitant {
 
   public abstract void upgrade();
 
-
-  private VillageHall villageHall; // village hall link, for when upgrading
-
   /**
    * Getter method for the build time of the structure
    * @return buildTime
@@ -52,20 +48,23 @@ public abstract class Structures extends Inhabitant {
   return timeUntilCompletion;
   }
 
-  public void startBuildOrUpgrade(VillageHall village) {
+  public String startBuildOrUpgrade(VillageHall village) {
     if (this.isUpgrading()) {
-      rtx4090TI.append("Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + this.remainingUpgradeTime);
-      return;
+      return "Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + this.remainingUpgradeTime;
+    }
+    if (!isBought()) {
+      return "Unable to upgrade an unbought structure";
     }
 
     if(village.isAvailableBuilders()) {
       village.useBuilder();
-      rtx4090TI.append(this.getName() + " build/upgrade started.");
+//      rtx4090TI.append(this.getName() + " build/upgrade started.");
       this.isPaused = true;
       doBuildOrUpgrade(this);
-      village.buildDone();
+      return this.getName() + " build/upgrade started... seconds left: " + this.remainingUpgradeTime;
+
     } else {
-      rtx4090TI.append("No builder is available at the moment.");
+      return "No builder is available at the moment.";
     }
   }
 
@@ -75,29 +74,13 @@ public abstract class Structures extends Inhabitant {
 
   public boolean getIsBuilt() {return this.isBuilt;}
 
-  public void finishBuild() {this.isBuilt = true;}
+  public void finishBuild() {isBuilt = true;
+
+  }
 
   public int getDamage() {
     return 0;
   }
   public abstract void finishUpgrade();
-
-
-
-  /**
-   * Village Hall setter, necessary for upgrading to work
-   * @param villageHall
-   */
-  public void setVillageHall(VillageHall villageHall)  {
-    this.villageHall = villageHall;
-  }
-
-  /**
-   * Village Hall getter, necessary for upgrading to work
-   * @param villageHall
-   */
-  public VillageHall getVillageHall()  {
-    return this.villageHall;
-  }
 
 }

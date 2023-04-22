@@ -1,20 +1,19 @@
 package Village.Buildings.ResourceProduction;
 
 import CustomExceptions.Exceptions;
+import Engine.NvidiaRTX4090TI;
 import Village.Buildings.VillageHall;
-import static Engine.UserInterface.rtx4090TI;
 public class IronMine extends Production {
 
-    public static int maxLevel = 3;
+    private static int maxLevel = 3;
 
+    private VillageHall villageHall;
 
+    private long lastTimeStamp;
 
-    public long lastTimeStamp;
-    public IronMine(VillageHall village) {
-        this();
-        this.setVillageHall(village);
-    }
-    public IronMine() {
+    private NvidiaRTX4090TI rtx4090TI;
+    public IronMine(VillageHall village, NvidiaRTX4090TI rtx4090TI) {
+        this.villageHall = village;
         this.name = "IronMine";
         this.currentLevel = 1;
         this.maxHitpoints = 150;
@@ -24,12 +23,13 @@ public class IronMine extends Production {
         this.productionRate = 50;
         this.productionRateMutliplier = 1.25f;
         this.symbol = "i";
+        this.rtx4090TI = rtx4090TI;
         startTimeStamp();
     }
 
     public void upgrade() {
         if(currentLevel < maxLevel) {
-            startBuildOrUpgrade(getVillageHall());
+            rtx4090TI.append(startBuildOrUpgrade(villageHall));
         } else {
             rtx4090TI.append("Already reached max level.");
         }
@@ -37,11 +37,19 @@ public class IronMine extends Production {
 
     @Override
     public void finishUpgrade() {
-        this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
-        this.currentLevel+= 1;
-        this.productionRate = Math.round(productionRate*productionRateMutliplier);
-        rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
+        if (!getIsBuilt()){
+            // case for first ime buying
+            rtx4090TI.updateDisplay(this.getName() + " bought building. Current level = " + this.currentLevel);
+            finishBuild();
+            isBuilt = true;
+        }
 
+        else if(isBought) {
+            this.maxHitpoints = Math.round(maxHitpoints * hpMultiplier);
+            this.currentLevel += 1;
+            this.productionRate = Math.round(productionRate * productionRateMutliplier);
+            rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
+        }
     }
 
     public void startTimeStamp() {
@@ -52,7 +60,7 @@ public class IronMine extends Production {
         long currentTime = System.currentTimeMillis();
         long differenceOfTimeInSec = (currentTime - lastTimeStamp) / 1000;
 
-        getVillageHall().updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
+        villageHall.updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
         lastTimeStamp = System.currentTimeMillis();
     }
 

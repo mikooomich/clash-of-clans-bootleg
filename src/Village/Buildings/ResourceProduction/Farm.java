@@ -1,20 +1,19 @@
 package Village.Buildings.ResourceProduction;
 
+import Engine.NvidiaRTX4090TI;
 import Village.Buildings.VillageHall;
-import static Engine.UserInterface.rtx4090TI;
 /**
  * This is the farm class for a farm structure. Holds properties for food that is being produced and other production properties.
  */
 public class Farm extends Production {
 
-  public static int maxLevel = 5;
+  private static int maxLevel = 5;
 
+  private VillageHall villageHall;
+  private NvidiaRTX4090TI rtx4090TI;
 
-  public Farm(VillageHall village) {
-    this();
-    this.setVillageHall(village);
-  }
-  public Farm() {
+  public Farm(VillageHall village, NvidiaRTX4090TI rtx4090TI) {
+    this.villageHall = village;
     this.name = "Farm";
     this.currentLevel = 1;
     this.maxHitpoints = 300;
@@ -27,6 +26,7 @@ public class Farm extends Production {
     // this.productionRateMutliplier = 1.5f;
     this.symbol ="f";
     this.productionRate = -1;
+    this.rtx4090TI = rtx4090TI;
   }
 
   //Variable to hold the food being obtained from a farm
@@ -34,7 +34,7 @@ public class Farm extends Production {
 
   public void upgrade() {
     if(currentLevel < maxLevel) {
-      startBuildOrUpgrade(getVillageHall());
+      rtx4090TI.append(startBuildOrUpgrade(villageHall));
     } else {
       rtx4090TI.append("Already reached max level.");
     }
@@ -42,13 +42,18 @@ public class Farm extends Production {
 
   @Override
   public void finishUpgrade() {
-    if(isBought) {
+    if (!getIsBuilt()){
+      // case for first ime buying
+      rtx4090TI.updateDisplay(this.getName() + " bought building. Current level = " + this.currentLevel);
+      finishBuild();
+      isBuilt = true;
+    }
+
+    else if(isBought) {
       this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
       this.currentLevel+= 1;
       this.foodFromFarm += 5;
       rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
-    } else {
-      rtx4090TI.updateDisplay(this.getName() + " finished building. Current level = " + this.currentLevel);
     }
 
   }

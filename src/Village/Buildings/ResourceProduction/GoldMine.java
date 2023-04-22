@@ -1,20 +1,19 @@
 package Village.Buildings.ResourceProduction;
 
 import CustomExceptions.Exceptions;
+import Engine.NvidiaRTX4090TI;
 import Village.Buildings.VillageHall;
-import static Engine.UserInterface.rtx4090TI;
 public class GoldMine extends Production {
 
-    public static int maxLevel = 2;
+    private static int maxLevel = 2;
 
+    private VillageHall villageHall;
 
+    private long lastTimeStamp;
 
-    public long lastTimeStamp;
-    public GoldMine(VillageHall village) {
-        this();
-        this.setVillageHall(village);
-    }
-    public GoldMine() {
+    private NvidiaRTX4090TI rtx4090TI;
+    public GoldMine(VillageHall village, NvidiaRTX4090TI rtx4090TI) {
+        this.villageHall = village;
         this.name = "GoldMine";
         this.currentLevel = 1;
         this.maxHitpoints = 200;
@@ -25,12 +24,13 @@ public class GoldMine extends Production {
         this.productionRate = 25;
         this.productionRateMutliplier = 1.25f;
         this.symbol = "g";
+        this.rtx4090TI = rtx4090TI;
         startTimeStamp();
     }
 
     public void upgrade() {
         if(currentLevel < maxLevel) {
-            startBuildOrUpgrade(getVillageHall());
+            rtx4090TI.append(startBuildOrUpgrade(villageHall));
         } else {
             rtx4090TI.append("Already reached max level.");
         }
@@ -38,13 +38,18 @@ public class GoldMine extends Production {
 
     @Override
     public void finishUpgrade() {
-        if(isBought) {
+        if (!getIsBuilt()){
+            // case for first ime buying
+            rtx4090TI.updateDisplay(this.getName() + " bought building. Current level = " + this.currentLevel);
+            finishBuild();
+            isBuilt = true;
+        }
+
+        else if(isBought) {
             this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
             this.currentLevel+= 1;
             this.productionRate = Math.round(productionRate*productionRateMutliplier);
             rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
-        } else {
-            rtx4090TI.updateDisplay(this.getName() + " finished building. Current level = " + this.currentLevel);
         }
 
     }
@@ -57,7 +62,7 @@ public class GoldMine extends Production {
         long currentTime = System.currentTimeMillis();
         long differenceOfTimeInSec = (currentTime - lastTimeStamp) / 1000;
 
-        getVillageHall().updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
+        villageHall.updateWoodInStorage((int)(this.productionRate * differenceOfTimeInSec));
         lastTimeStamp = System.currentTimeMillis();
     }
 

@@ -1,30 +1,24 @@
 package Village;
 
-import Engine.Editor;
-import Engine.Shop;
-import Engine.UserInterface;
+import CustomExceptions.Exceptions;
+import Engine.*;
 import Village.Army.*;
+import Village.Buildings.Defences.ArcherTower;
+import Village.Buildings.Defences.Cannon;
 import Village.Buildings.ResourceProduction.*;
 import Village.Buildings.Structures;
 import Village.Buildings.VillageHall;
+import com.sun.tools.javac.Main;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import static Engine.UserInterface.rtx4090TI;
+
+import static Engine.Editor.rng;
 
 /**
  * Main class for a village. Contains properties for a village and for the UI to access. (ex. wins/losses, population, guard time, ect)
  */
 public class MainVillage{
-
-  public interface Generator {
-    /**
-     * Generate a new, random village, adhering to limits of the village
-     * @return
-     */
-    public MainVillage GenerateVillage(int targetVillageHallLvl);
-  }
-
 
   public static final HashMap<String, Integer> STARTING_STRUCTURES = new HashMap<>() {
     {
@@ -66,7 +60,7 @@ public class MainVillage{
     }
   };
 
-
+  private NvidiaRTX4090TI rtx4090TI;
   public static final int MAP_SIZE = 30; // assume square
 
   public int archerLvl = 1; //Used for new instances of archers
@@ -113,35 +107,35 @@ public class MainVillage{
 
   public int populationLimit; // limit for current village population
 
-  public Archer mvArcher = new Archer(this);
+  public Archer mvArcher = new Archer(this, rtx4090TI);
 
-  public Catapult mvCatapult = new Catapult(this);
+  public Catapult mvCatapult = new Catapult(this, rtx4090TI);
 
   public  static final int BASE_POP = 30;
 
   public String name = "";
 
-  public MainVillage(String name) {
-    this();
+  public MainVillage(String name, NvidiaRTX4090TI rtx4090TI) {
+    this(rtx4090TI);
     this.name = name;
 
   }
-  public MainVillage() {
+  public MainVillage(NvidiaRTX4090TI rtx4090TI) {
     placedStructures = new ArrayList<>();
     availableStructures = new LinkedList<>();
     trainedArmy = new ArrayList<>();
     defensiveArmy = new ArrayList<>();
     isOnGuard = false;
-
+    this.rtx4090TI = rtx4090TI;
 
 
     populationLimit = BASE_POP; // base pop limit
 
-    villageHall = new VillageHall(this);
+    villageHall = new VillageHall(this, rtx4090TI);
 
     addToVillage(villageHall);
-    addToVillage(new LumberMill(this.villageHall));
-    addToVillage(new Farm(this.villageHall));
+    addToVillage(new LumberMill(this.villageHall, rtx4090TI));
+    addToVillage(new Farm(this.villageHall, rtx4090TI));
 
     // dump initial structures in array
   }
@@ -213,28 +207,6 @@ public class MainVillage{
    * @return availableStructures[]
    */
   public Structures[] getAvailableStructures(){return availableStructures.toArray(new Structures[availableStructures.size()]);}
-
-  /**
-   * Get the list entire objects
-   * @return
-   */
-  public List<Structures> getlISTOFAvailableStructures() {
-    return availableStructures;
-  }
-
-  public void setListOfAvailableStructures(List<Structures> l) {this.availableStructures = l;}
-
-  public List<Structures> getlISTOFPlacedStructures() {
-    return placedStructures;
-  }
-
-  public void setListOfPlacedStructures(List<Structures> l) {this.placedStructures = l;}
-
-  public List<Troop> getlISTOFTrainedArmy() {
-    return trainedArmy;
-  }
-
-  public void setListOfTroops(List<Troop> l) {this.trainedArmy = l;}
 
 
 
@@ -309,10 +281,10 @@ public class MainVillage{
   }
 
   public String getDetails() {
-    String details = "Village hall level: " + this.villageHall.getCurrentLevel() + " population: " + this.getTotalPopulation() + "/" + this.populationLimit +"\n" +
-            "Guard status: " + this.isOnGuard + "\n" +
-            "Army size: " + this.trainedArmy.size() + " Placed structure count: " + this.placedStructures.size() + " Available structure count: " + this.availableStructures.size() +"\n" +
-            "Resources: Gold: " + this.villageHall.getCurrentGoldInStorage() + " Iron: " + this.villageHall.getCurrentIronInStorage() + "Wood: " + this.villageHall.getCurrentWoodInStorage();
+    String details = "Village hall level: " + villageHall.getCurrentLevel() + " population: " + totalPopulation + "/" + populationLimit +"\n" +
+            "Guard status: " + isOnGuard + "\n" +
+            "Army size: " + trainedArmy.size() + " Placed structure count: " + placedStructures.size() + " Available structure count: " + availableStructures.size() +"\n" +
+            "Resources: Gold: " + villageHall.getCurrentGoldInStorage() + " Iron: " + villageHall.getCurrentIronInStorage() + "Wood: " + villageHall.getCurrentWoodInStorage();
     return details;
   }
 
@@ -488,22 +460,24 @@ public class MainVillage{
 
   /**
    * Method to get the next village (randomly), used in battle sim
+   * GENERATES BOTH ARMY AND STRUCTURES
    * @return MainVillage (random village)
    */
   public static MainVillage getNextVillage(int targetVillageHallLvl) {
-    Generator yes = new Generator() {
-      //      @Override
+    NvidiaRTX4090TI rtx = new NvidiaRTX4090TI();
+    UserInterface.Generator yes = new UserInterface.Generator() {
+      @Override
       public MainVillage GenerateVillage(int targetVillageHallLvl) {
-        MainVillage hi = new MainVillage();
-        rtx4090TI.appendDebug("Generating village");
+        MainVillage hi = new MainVillage(new NvidiaRTX4090TI());
+//        rtx4090TI.appendDebug("Generating village");
 
         // set level for max allowed stuff
 //        int villageHallLvl = rng(1, VillageHall.maxLevel);
         int villageHallLvl = targetVillageHallLvl;
-        rtx4090TI.appendDebug(hi.villageHall.getCurrentLevel() +"<-- current   target -->" + villageHallLvl);
+//        rtx4090TI.appendDebug(hi.villageHall.getCurrentLevel() +"<-- current   target -->" + villageHallLvl);
 
         // upgrade village hall until level
-        new Shop(hi).buyAll();
+        new Shop(hi, rtx).buyAll();
 
         while (hi.villageHall.getCurrentLevel() < villageHallLvl) {
 //          rtx4090TI.updateDisplay("---------------------------------------------");
@@ -512,34 +486,94 @@ public class MainVillage{
         }
 
         // create army, structures
-        new Shop(hi).buyAll();
-        new Editor(hi).generateRandomLayout();
-        rtx4090TI.appendDebug("Structure Generation complete");
+        new Shop(hi, rtx).buyAll();
+        new Editor(hi, rtx).generateRandomLayout();
+//        rtx4090TI.appendDebug("Structure Generation complete");
 
         while (hi.getTotalPopulation() < hi.populationLimit) {
-          hi.addToVillage(new Archer(hi));
-          hi.addToVillage(new Soldier(hi));
-          hi.addToVillage(new Catapult(hi));
-          hi.addToVillage(new Knight(hi));
+          hi.addToVillage(new Archer(hi, rtx));
+          hi.addToVillage(new Soldier(hi, rtx));
+          hi.addToVillage(new Catapult(hi, rtx));
+          hi.addToVillage(new Knight(hi, rtx));
         }
-        rtx4090TI.appendDebug("Generation complete");
+//        rtx4090TI.appendDebug("Generation complete");
         return hi;
       }
+
+
+      /**
+       * THESE 2 ARE INTENTIONALLY LEFT BLANK
+       * @param village
+       */
+      @Override
+      public void GenerateArmyOnly(MainVillage village) {
+      }
+
     };
 
-    rtx4090TI.append("Generated a village with village hall level " + targetVillageHallLvl);
     return yes.GenerateVillage(targetVillageHallLvl);
   }
 
   /**
-   * Method for reset a village back to new account
+   * Method to get the next ARMY RANDOMLY
+   * @return MainVillage (random village)
    */
-  public static MainVillage resetVillage() {
-    return new MainVillage();
+  public static List<Troop> getNextArmy(int targetVillageHallLvl) {
+    NvidiaRTX4090TI rtx = new NvidiaRTX4090TI();
+    UserInterface.Generator yes = new UserInterface.Generator() {
+      @Override
+      public MainVillage GenerateVillage(int targetVillageHallLvl) {
+        MainVillage hi = new MainVillage(new NvidiaRTX4090TI());
+        int villageHallLvl = targetVillageHallLvl;
+        // upgrade village hall until level
+        new Shop(hi, rtx).buyAll();
+
+        while (hi.villageHall.getCurrentLevel() < villageHallLvl) {
+          hi.villageHall.hax();
+          hi.villageHall.finishUpgrade(); // bypass upgrade times
+        }
+
+        return hi;
+      }
+
+
+      /**
+       * While the village still has population space, select an a random enum to feed into
+       * troop factory, add it to the village
+       */
+      @Override
+      public void GenerateArmyOnly(MainVillage village) {
+        // generate actual army
+
+        while (village.getTotalPopulation() < village.populationLimit) {
+          try {
+            village.addToVillage(new TroopFactory().trainTroop(String.valueOf(Shop.Who.values()[rng(0, 3)]), village, new NvidiaRTX4090TI()));
+          }
+          catch (Exceptions.InvalidTroopException e) {
+            System.out.println(e.getMessage());
+          }
+        }
+      }
+
+    };
+
+    // generate village with correct village hall level
+    MainVillage generatedVillageBarebones = yes.GenerateVillage(targetVillageHallLvl);
+    yes.GenerateArmyOnly(generatedVillageBarebones); // add army
+
+    return generatedVillageBarebones.trainedArmy;
   }
 
-  public void setVillageHall(VillageHall village) {
-    this.villageHall = village;
+
+  public NvidiaRTX4090TI getRtx4090TI() {return this.rtx4090TI;}
+
+  /**
+   * Method for reset a village back to new account
+   */
+  public MainVillage resetVillage() {
+    return new MainVillage(this.rtx4090TI);
   }
+
+  public void setTrainedArmy(List<Troop> army) {this.trainedArmy = army;}
 
 }

@@ -1,26 +1,25 @@
 package Village.Army;
 
+import Engine.NvidiaRTX4090TI;
 import Village.MainVillage;
-import static Engine.UserInterface.rtx4090TI;
 public class Soldier extends Troop {
 
     public static int maxLevel = 5;
-    public int maxHP = 50;
-    public float hpMultiplier = 1.25f;
-    public int currentlvl = 1;
-    public int upgradeLength = 2;
-    public int soldierDamage = 10;
-    public float dmgMultiplier = 1.25f;
-    public MainVillage mainVillage;
+    private int maxHP = 50;
+    private float hpMultiplier = 1.25f;
+    private int currentlvl = 1;
+    private int upgradeLength = 2;
+    private int soldierDamage = 10;
+    private float dmgMultiplier = 1.25f;
 
+    private MainVillage myVillage;
 
-    public Soldier(MainVillage village) {
-        this();
-        this.mainVillage = village;
-        this.currentLevel = mainVillage.soldierLvl;
-    }
-    public Soldier() {
+    private NvidiaRTX4090TI rtx4090TI;
+
+    public Soldier(MainVillage village, NvidiaRTX4090TI rtx4090TI) {
+        this.myVillage = village;
         this.name = "Soldier";
+        this.currentLevel = myVillage.soldierLvl;
         this.maxHitpoints = maxHP;
         this.cost.replace("Wood", 0, 1);
         this.cost.replace("Iron", 0, 1);
@@ -31,6 +30,7 @@ public class Soldier extends Troop {
         this.movementSpeed = 3;
         this.attackRate = 3;
         this.symbol = "S";
+        this.rtx4090TI = rtx4090TI;
     }
 
     /**
@@ -54,7 +54,7 @@ public class Soldier extends Troop {
     public void finishUpgrade() {
         maxHP = Math.round(maxHP*hpMultiplier);
         soldierDamage = Math.round(soldierDamage*dmgMultiplier);
-        rtx4090TI.updateDisplay("Soldier upgraded. Current level = " + mainVillage.soldierLvl);
+        rtx4090TI.updateDisplay("Soldier upgraded. Current level = " + myVillage.soldierLvl);
 
     }
 

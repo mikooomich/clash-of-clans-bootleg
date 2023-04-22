@@ -5,7 +5,6 @@ import Village.MainVillage;
 
 import java.util.LinkedList;
 import java.util.List;
-import static Engine.UserInterface.rtx4090TI;
 
 /**
  * Controls the village guard and upgrades / builds
@@ -24,9 +23,11 @@ public class VillageSimulator {
 
   protected static List<Inhabitant> needGuard;
 
-  public VillageSimulator(MainVillage mv) {
-    this.mainVillage = mv;
+  private NvidiaRTX4090TI rtx4090TI;
 
+  public VillageSimulator(MainVillage mv, NvidiaRTX4090TI rtx4090TI) {
+    this.mainVillage = mv;
+    this.rtx4090TI = rtx4090TI;
     needGuard = new LinkedList<>();
     needUpgradOrBuild = new LinkedList<>();
 
@@ -56,20 +57,14 @@ public class VillageSimulator {
   public void endGuard() {
   }
 
-//  /**
-//   * Upgrades a unit (either structure or troop)
-//   * @param entity
-//   */
-//  public void doUpgrade(Inhabitant entity) {
-//    entity.upgrade();
-//  }
+
 
   /**
    * Starts a entity build
    * This method adds the entity to the tick array, the async clock is a singleton that will tick the structures.
    * @param entity
    */
-  public static void doBuildOrUpgrade(Inhabitant entity) {
+  public static String doBuildOrUpgrade(Inhabitant entity) {
     entity.remainingUpgradeTime = entity.upgradeTime;
     if (needUpgradOrBuild.size() <= 0) { // you get some scary error with immutable error without this idk
       needUpgradOrBuild = new LinkedList<>();
@@ -77,8 +72,13 @@ public class VillageSimulator {
     needUpgradOrBuild.add(entity);
 
     // start ticking
-    rtx4090TI.updateDisplay("Starting build or upgrade for " + entity.getName() + "id=" + entity.getID());
     AsyncClock.idk();
+   return "Starting build or upgrade for " + entity.getName() + "id=" + entity.getID();
+
+
+
+
+
   }
 
 

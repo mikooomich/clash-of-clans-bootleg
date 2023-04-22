@@ -1,27 +1,23 @@
 package Village.Army;
+import Engine.NvidiaRTX4090TI;
 import Village.MainVillage;
-import com.sun.tools.javac.Main;
-
-import static Engine.UserInterface.rtx4090TI;
 public class Archer extends Troop {
 
     public static int maxLevel = 5;
-    public int maxHP = 20;
-    public  float hpMultiplier = 1.5f;
-    public  int upgradeLength = 2;
-    public  int archDamage = 5;
-    public  float dmgMultiplier = 1.5f; //Moved from constructor to here, not sure where it should be best
-    public MainVillage mainVillage;
+    private int maxHP = 20;
+    private float hpMultiplier = 1.5f;
+    private int upgradeLength = 2;
+    private int archDamage = 5;
+    private float dmgMultiplier = 1.5f; //Moved from constructor to here, not sure where it should be best
+    private MainVillage myVillage;
 
+    private NvidiaRTX4090TI rtx4090TI;
 
-    public Archer(MainVillage village) {
-        this();
-        this.mainVillage = village;
-        this.currentLevel = mainVillage.archerLvl;
-    }
-    public Archer() {
+    public Archer(MainVillage village, NvidiaRTX4090TI rtx4090TI) {
+        this.myVillage = village;
         this.name = "Archer";
         this.maxHitpoints = maxHP;
+        this.currentLevel = myVillage.archerLvl;
         this.cost.replace("Wood", 0, 1);
         this.cost.replace("Iron", 0, 1);
         this.upgradeTime = upgradeLength;
@@ -31,6 +27,7 @@ public class Archer extends Troop {
         this.movementSpeed = 3;
         this.attackRate = 3;
         this.symbol = "A";
+        this.rtx4090TI = rtx4090TI;
     }
 
     /**
@@ -54,7 +51,7 @@ public class Archer extends Troop {
     public void finishUpgrade() {
         maxHP = Math.round(maxHP*hpMultiplier);
         archDamage = Math.round(archDamage*dmgMultiplier);
-        rtx4090TI.updateDisplay("Archer upgraded. Current level = " + mainVillage.archerLvl);
+        rtx4090TI.updateDisplay("Archer upgraded. Current level = " + myVillage.archerLvl);
 
     }
 

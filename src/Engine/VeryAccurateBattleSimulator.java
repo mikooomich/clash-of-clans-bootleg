@@ -3,7 +3,6 @@ package Engine;
 import Village.*;
 import Village.Army.Troop;
 import Village.Buildings.Defences.DefenceStructures;
-import Village.Buildings.Structures;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -24,7 +23,7 @@ public class VeryAccurateBattleSimulator {
   // do not touch
   public static final int MAX_ALLOWED_TICKS = TICK_SPEED * MAX_TIME_SECONDS; // for battle time limit
   public static final double PAUSE_TIME = Math.floor((Double.valueOf(1)/ TICK_SPEED) * 1000); // pause time between ticks in ms
-
+  private final NvidiaRTX4090TI rtx4090TI;
 
 
   boolean realtime = true; // realtime attack simulation
@@ -46,24 +45,27 @@ public class VeryAccurateBattleSimulator {
 
   /**
    * Create a battle simulator object
-   * @param attacker MainVillage of attacker
-   * @param defender MainVillage of defender
-   * @param realtime set true for realtime simulation, else the simulation will run at full speed
+   *
+   * @param attacker  MainVillage of attacker
+   * @param defender  MainVillage of defender
+   * @param realtime  set true for realtime simulation, else the simulation will run at full speed
+   * @param rtx4090TI
    * @throws InterruptedException
    */
-  public VeryAccurateBattleSimulator(MainVillage attacker, MainVillage defender, boolean realtime) {
+  public VeryAccurateBattleSimulator(MainVillage attacker, MainVillage defender, boolean realtime, NvidiaRTX4090TI rtx4090TI) {
     if (defender == null || defender.isOnGuard) {
-      System.out.println("ERROR, DEFENDER MUST BE NOT ON GUARD AND MUST EXIST. PLEASE RUN 'next' TO MAKE IT NOT NULL");
+      rtx4090TI.updateDisplay("ERROR, DEFENDER MUST BE NOT ON GUARD AND MUST EXIST. PLEASE RUN 'next' TO MAKE IT NOT NULL");
     }
 
 
-    System.out.println("ONE TICK EVERY THIS AMOUNT OF MILLISECONDS: " + PAUSE_TIME);
-    System.out.println("MAX TIME LIMIT IN SECONDS: " + MAX_TIME_SECONDS);
+    rtx4090TI.append("ONE TICK EVERY THIS AMOUNT OF MILLISECONDS: " + PAUSE_TIME);
+    rtx4090TI.append("MAX TIME LIMIT IN SECONDS: " + MAX_TIME_SECONDS);
 
 
     this.defender = defender;
     this.attacker = attacker;
     this.realtime = realtime;
+    this.rtx4090TI = rtx4090TI;
     currentTickCount = 0;
 
     attackerArsenal = new ArrayList<>();
@@ -84,7 +86,9 @@ public class VeryAccurateBattleSimulator {
       entity.currentHitpoints = entity.maxHitpoints;
     }
 
-    System.out.println("Initialization finish\n\n");
+    rtx4090TI.append("Initialization finish\n\n");
+
+    rtx4090TI.updateDisplay();
   }
 
 
@@ -102,23 +106,23 @@ public class VeryAccurateBattleSimulator {
    * @throws InterruptedException
    */
   public void startSim() throws InterruptedException {
-    System.out.println("\n\n\n-------------PRINTING DETAILS BEFORE START SIMULATOR-----------------");
-    System.out.println("\n\nAttacker details");
-    System.out.println(attacker.getDetails());
-    System.out.println("\n\nDefender details");
-    System.out.println(defender.getDetails());
-    System.out.println("-------------PRINTING END-----------------\n\n");
+    rtx4090TI.append("\n\n\n-------------PRINTING DETAILS BEFORE START SIMULATOR-----------------");
+    rtx4090TI.append("\n\nAttacker details");
+    rtx4090TI.append(attacker.getDetails());
+    rtx4090TI.append("\n\nDefender details");
+    rtx4090TI.append(defender.getDetails());
+    rtx4090TI.append("-------------PRINTING END-----------------\n\n");
+    rtx4090TI.updateDisplay();
 
 
+    rtx4090TI.append("Attacker army size: \n" + attackerArsenal.size());
+    rtx4090TI.append("Defender structure size: " + defenderArsenal.size());
+    rtx4090TI.append("STARTING WITH THIS MAP-----------------------");
+    rtx4090TI.append(drawMap(getMap())); // draw map before starting (faceroll purposes)
+    rtx4090TI.append("MAP PRINT END---------------------------------");
+    rtx4090TI.updateDisplay();
 
-    System.out.println("Attacker army size: \n" + attackerArsenal.size());
-    System.out.println("Defender structure size: " + defenderArsenal.size());
-    System.out.println("STARTING WITH THIS MAP-----------------------");
-    System.out.println(drawMap(getMap())); // draw map before starting (faceroll purposes)
-    System.out.println("MAP PRINT END---------------------------------");
-
-
-    System.out.println("SIMULATING... \n");
+    rtx4090TI.updateDisplay("SIMULATING... \n");
     // tick loop, until one side loses or time is up, whichever comes first
     while (defenderArsenal.size() > 0 && attackerArsenal.size() > 0 && currentTickCount < MAX_ALLOWED_TICKS) {
       tick();
@@ -126,7 +130,7 @@ public class VeryAccurateBattleSimulator {
 
       // progress display
       if (realtime && currentTickCount % 30 == 0) {
-        System.out.println(currentTickCount + "/" + MAX_ALLOWED_TICKS);
+        rtx4090TI.updateDisplay(currentTickCount + "/" + MAX_ALLOWED_TICKS);
 //        System.out.println(drawMap());
       }
       if (realtime) {
@@ -142,13 +146,14 @@ public class VeryAccurateBattleSimulator {
    * Ends the battle
    */
   public void end() {
-    System.out.println("\n\n\ntotal ticks:" + currentTickCount);
-    System.out.println("Attacker army size: " + attackerArsenal.size());
-    System.out.println("Defender structure size: " + defenderArsenal.size());
-    System.out.println("FINAL RESULT MAP\n--------------------------------------------------");
-    System.out.println("OVERLAPPING TROOPS WILL SHOW AS ONE UNIT");
-    System.out.println(drawMap(getMap()));
-    System.out.println("END MAP\n--------------------------------------------------");
+    rtx4090TI.append("\n\n\ntotal ticks:" + currentTickCount);
+    rtx4090TI.append("Attacker army size: " + attackerArsenal.size());
+    rtx4090TI.append("Defender structure size: " + defenderArsenal.size());
+    rtx4090TI.append("FINAL RESULT MAP\n--------------------------------------------------");
+    rtx4090TI.append("OVERLAPPING TROOPS WILL SHOW AS ONE UNIT");
+    rtx4090TI.append(drawMap(getMap()));
+    rtx4090TI.append("END MAP\n--------------------------------------------------");
+    rtx4090TI.updateDisplay();
     calculateRewards();
 
     // modify attacker's troop array here
@@ -237,7 +242,7 @@ public class VeryAccurateBattleSimulator {
     lootForAttacker.put("Gold", goldGained);
     attacker.villageHall.addRaidVictoryResources(lootForAttacker);
     //Message to console so attacker knows
-    System.out.println("Loot gained from attack: Wood: " + woodGained + " Iron: " +ironGained + " Gold: " + goldGained);
+    rtx4090TI.updateDisplay("Loot gained from attack: Wood: " + woodGained + " Iron: " +ironGained + " Gold: " + goldGained);
 
   }
 

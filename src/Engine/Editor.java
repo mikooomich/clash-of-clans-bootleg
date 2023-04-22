@@ -6,9 +6,8 @@ import Village.MainVillage;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-import static Engine.UserInterface.rtx4090TI;
 import static Village.MainVillage.MAP_SIZE;
-import static Engine.UserInterface.rtx4090TI;
+
 
 /**
  * This class is for customizing a village. A user can change their layout of their village.
@@ -16,8 +15,11 @@ import static Engine.UserInterface.rtx4090TI;
 public class Editor implements UiElement {
   private MainVillage myVillage;
 
-  public Editor(MainVillage myVillage) {
+  private NvidiaRTX4090TI rtx4090TI;
+
+  public Editor(MainVillage myVillage, NvidiaRTX4090TI rtx4090TI) {
     this.myVillage = myVillage;
+    this.rtx4090TI = rtx4090TI;
   }
 
 

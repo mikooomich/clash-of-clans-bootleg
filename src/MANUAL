@@ -9,7 +9,7 @@ exit ---- Saves the current state of the village and exits the game
 next ---- get new village to attack.
 attack ---- attack enter attack with this village, this auto deploys troops
 NOT IMPLEMENTED attack MANUAL ---- attack enter attack with this village. YOU WILL MANUALLY NEED TO PLACE DOWN TROOPS
-simdefence ---- simulate a defence on your village
+simdefence ---- simulate a defence on your village by generating an army
 
 shop CATALOG ----  shows available structures. shop BUY ID ---- buy (build) the structure with the coresponding id\
 shop BUY INDEX---- buy the thing, index is the index in the catalog

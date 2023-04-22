@@ -2,11 +2,9 @@ package Village.Army;
 
 import Village.AttackOrDefence;
 import Village.Inhabitant;
-import Village.MainVillage;
 
 import java.util.HashMap;
 
-import static Engine.UserInterface.rtx4090TI;
 import static Engine.VillageSimulator.doBuildOrUpgrade;
 
 /**
@@ -54,8 +52,12 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
 
   public double getUpgradeTime() {return upgradeTime;}
 
+  public static final int TICK_SPEED = 10; //For upgrade/building
 
-  MainVillage myVillage;
+  public static final double PAUSE_TIME = Math.floor((Double.valueOf(1)/ TICK_SPEED) * 1000);
+
+  boolean realtime = true;
+
 
 
   /**
@@ -133,17 +135,12 @@ public abstract class Troop extends Village.Inhabitant implements AttackOrDefenc
    */
   public void startUpgradeTime(Troop troop) throws InterruptedException {
     if (troop.isUpgrading()) {
-      rtx4090TI.append("Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + troop.remainingUpgradeTime);
+//      rtx4090TI.append("Cannot start an upgrade when an upgrade is ongoing. Remaining seconds: " + troop.remainingUpgradeTime);
       return;
     }
 
-    rtx4090TI.append("upgrading...");
-    doBuildOrUpgrade(troop);
-  }
-
-
-  public void setMainVillage(MainVillage villageeeee) {
-    myVillage =  villageeeee;
+//    rtx4090TI.append("upgrading...");
+    System.out.println( doBuildOrUpgrade(troop));
   }
 
 }

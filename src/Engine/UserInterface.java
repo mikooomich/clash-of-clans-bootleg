@@ -3,15 +3,19 @@ package Engine;
 import CustomExceptions.Exceptions;
 import Village.*;
 import Village.Army.*;
-import com.sun.tools.javac.Main;
+import Village.Buildings.Structures;
+import Village.Buildings.VillageHall;
 
 // for system.in reader
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.*;
+import java.awt.image.AffineTransformOp;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-import static Village.MainVillage.resetVillage;
+import static Village.MainVillage.getNextArmy;
 import static Village.MainVillage.getNextVillage;
 
 
@@ -19,6 +23,25 @@ import static Village.MainVillage.getNextVillage;
  * Main user interface class, which handles all user interfaces and manages them.
  */
 public class UserInterface {
+
+  public interface Generator {
+    /**
+     * Generate a new, random village, adhering to limits of the village
+     * @return
+     */
+    public MainVillage GenerateVillage(int targetVillageHallLvl);
+
+
+    /**
+     * Generate a new, random village, adhering to limits of the village
+     * @return
+     */
+
+    public void GenerateArmyOnly(MainVillage village);
+
+  }
+
+
 
 
   //Unique player ID, for multiplayer
@@ -46,57 +69,53 @@ public class UserInterface {
 
   private TroopFactory troopFactory;
 
-  public static final NvidiaRTX4090TI rtx4090TI = new NvidiaRTX4090TI(); // display adapter
+  public final NvidiaRTX4090TI rtx4090TI = new NvidiaRTX4090TI(); // display adapter
 
 
 
 
 
-  public static void main(String args[]) throws Exception {
-    System.out.println("Hewwo world");
-    UserInterface hewwo = new UserInterface();
-    System.out.println("Gwoodbye world");
+//  public static void main(String args[]) throws Exception {
+//    System.out.println("Hewwo world");
+//    UserInterface hewwo = new UserInterface();
+//    System.out.println("Gwoodbye world");
+//  }
+
+
+
+
+
+  public UserInterface(WorkerThread workerThread) {
+    myVillage = new MainVillage(rtx4090TI);
+    troopFactory = new TroopFactory();
+    villageSim = new VillageSimulator(myVillage, rtx4090TI);
+    rtx4090TI.setThreadLink(workerThread);
+    rtx4090TI.updateDisplay("Hewwo! Type a command or or type 'man' for the manual");
   }
 
+  public void doAction(String command) throws Exception {
 
+//    BufferedReader command = new BufferedReader(new InputStreamReader(System.in));
 
-
-
-  public UserInterface() throws Exception {
-    //Delete me if not work
-
-    myVillage = XmlParser.readFile();
-
-    if(myVillage == null) {
-      myVillage = new MainVillage();
-      System.out.println("was null");
-    }
-    //End delete
-    troopFactory = new TroopFactory();
-    villageSim = new VillageSimulator(myVillage);
-    rtx4090TI.updateDisplay("Hewwo! Type a command or or type 'man' for the manual");
-
-
-    BufferedReader command = new BufferedReader(new InputStreamReader(System.in));
-
-    String cmd[]; // command separated into args
+    String[] cmd; // command separated into args
     String whatToDo = "";
 
-    outer:
-    while (true) {
+//    outer:
+//    while (true) {
 //      rtx4090TI.updateDisplay("received :::: " + thing);
-      cmd = command.readLine().split(" ");
+
+
+    if (command == null) {
+      return;
+    }
+      cmd = command.split(" ");
       whatToDo = cmd[0];
+      System.out.println(whatToDo);
       String operation; // for secondary command ex. the display part of "editor display"
 
       try {
       switch (whatToDo) {
 
-        case "exit":
-          //Delete me if not work
-          XmlParser.writeVillage(myVillage);
-          //End of delete me
-          break outer;
 
 
         /**
@@ -132,7 +151,7 @@ public class UserInterface {
          */
         case "shop":
           rtx4090TI.append("Entered shop");
-          shop = new Shop(myVillage);
+          shop = new Shop(myVillage, rtx4090TI);
           operation = cmd[1];
           
             enterShop(myVillage);
@@ -148,7 +167,7 @@ public class UserInterface {
               shop.showCatalog();
             } else if (operation.equals("train")) {
               try {
-                shop.train(troopFactory.trainTroop(cmd[2], myVillage));
+                shop.train(troopFactory.trainTroop(cmd[2], myVillage, rtx4090TI));
               //  shop.train(Shop.Who.valueOf(cmd[2])); // throw enum error possibly
               } catch (IllegalArgumentException e) {
                 rtx4090TI.updateDisplay("Invalid id specified, run catalog command to see available");
@@ -158,7 +177,7 @@ public class UserInterface {
               }
             } else if (operation.equals("upgradeT")) {
               try {
-                shop.upgradeTroop(Who.valueOf(cmd[2]));
+                shop.upgradeTroop(Shop.Who.valueOf(cmd[2]));
                 rtx4090TI.updateDisplay();
               } catch (EnumConstantNotPresentException e) {
                 rtx4090TI.updateDisplay("Invalid troop specified, run catalog command to see available");
@@ -168,15 +187,14 @@ public class UserInterface {
                 shop.upgradeStructure(Integer.parseInt(cmd[2]));
               } catch (NoSuchElementException e) {
                 rtx4090TI.updateDisplay("Invalid ID or structure not placed, run catalog command to see available");
-              } catch (NumberFormatException e) {
-                rtx4090TI.updateDisplay("Invalid ID, run catalog command to see available");
               }
             } else if (operation.equals("collect")) {
 
               myVillage.villageHall.collectAll();
-            }
-          if (operation.equals("buyall")) {
+            } else if (operation.equals("buyall")) {
               shop.buyAll();
+            } else {
+              rtx4090TI.updateDisplay("Invalid shop command -- Check Manual for commands");
             }
 
 
@@ -188,19 +206,26 @@ public class UserInterface {
          * ATTACK AND DEFENCE COMMANDS
          */
         case "simdefence":
-          // it is possible to start a defence when you or opponent have no placedbuildings.
-          rtx4090TI.append("Starting a defence.");
-          opponent = getNextVillage(myVillage.villageHall.currentLevel);
-          initiateSimulator(opponent, myVillage, true);
-//          battleSim.faceRoll();
-//          battleSim.startSim();
-//          rtx4090TI.updateDisplay("Simulation done");
+          NvidiaRTX4090TI tempRtx = new NvidiaRTX4090TI();
+          MainVillage tempMain = new MainVillage(tempRtx);
+          tempMain.setTrainedArmy(MainVillage.getNextArmy(myVillage.villageHall.currentLevel));
+          initiateSimulator(tempMain, myVillage, true);
+          System.out.println("reached here in simdefence in UI");
           battleSim = null;
-
-          // start guard after being attacked
-          new VillageSimulator(myVillage).startGuard();
-
+          tempRtx = null;
+          tempMain = null;
           break;
+
+        case "testvillage":
+          MainVillage tempOpponent = getNextVillage(myVillage.villageHall.currentLevel);
+          List<Troop> playerCurrentArmy = Arrays.asList(myVillage.getTrainedArmy());
+          List<Troop> newArmy = getNextArmy(myVillage.villageHall.currentLevel);
+          myVillage.setTrainedArmy(newArmy);
+          initiateSimulator(myVillage, tempOpponent, true);
+          battleSim = null;
+          myVillage.setTrainedArmy(playerCurrentArmy);
+          break;
+
 
         /**
          * Generate new village to attack
@@ -223,9 +248,6 @@ public class UserInterface {
             opponent = getNextVillage(myVillage.villageHall.getCurrentLevel());
           }
   //          operation = cmd[1];
-          if(opponent == null) {
-            opponent = getNextVillage(myVillage.villageHall.currentLevel);
-          }
             initiateSimulator(myVillage, opponent, true);
   //          if (operation == "faceroll") {
 //            battleSim.faceRoll();
@@ -239,7 +261,7 @@ public class UserInterface {
          * displays your village layout and details
          */
         case "map":
-          new NvidiaRTX4090TI(myVillage);
+          rtx4090TI.printMap(myVillage);
           break;
 
 //        case "rtx4090":
@@ -284,16 +306,16 @@ public class UserInterface {
           myVillage.villageHall.hax();
 
           // train a sample army
-          shop.train(troopFactory.trainTroop("A",myVillage));
-          shop.train(troopFactory.trainTroop("K",myVillage));
-          shop.train(troopFactory.trainTroop("S",myVillage));
-          shop.train(troopFactory.trainTroop("C",myVillage));
+          shop.train(troopFactory.trainTroop("A",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("K",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("S",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("C",myVillage, rtx4090TI));
 
-          shop.train(troopFactory.trainTroop("A",myVillage));
-          shop.train(troopFactory.trainTroop("K",myVillage));
-          shop.train(troopFactory.trainTroop("S",myVillage));
-          shop.train(troopFactory.trainTroop("C",myVillage));
-
+          shop.train(troopFactory.trainTroop("A",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("K",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("S",myVillage, rtx4090TI));
+          shop.train(troopFactory.trainTroop("C",myVillage, rtx4090TI));
+          rtx4090TI.updateDisplay();
 // uncomment this to cause attack win
 //          shop.train(troopFactory.trainTroop("A",myVillage));
 //          shop.train(troopFactory.trainTroop("K",myVillage));
@@ -306,6 +328,7 @@ public class UserInterface {
 
           opponent = getNextVillage(1);
           rtx4090TI.append("Starting simulation...");
+          rtx4090TI.updateDisplay();
           initiateSimulator(myVillage, opponent, false);
           break;
 
@@ -322,8 +345,8 @@ public class UserInterface {
               data = stockpile.readLine();
             }
           }
-          catch (FileNotFoundException eee) {
-            rtx4090TI.updateDisplay("Could not print manual, file not found");
+          catch (FileNotFoundException aaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {
+            rtx4090TI.updateDisplay("COULD NOT PRINT MANUAL, FILE NOT FOUNT \n\n" + aaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
           }
 
           break;
@@ -334,9 +357,10 @@ public class UserInterface {
           break;
           
         case "reset":
-          myVillage = resetVillage();
+          myVillage = myVillage.resetVillage();
           rtx4090TI.append("Village Deleted");
           break;
+
 
 
         default:
@@ -349,11 +373,16 @@ public class UserInterface {
       } // end try
       catch (ArrayIndexOutOfBoundsException error) {
         rtx4090TI.updateDisplay("Please use correct syntax");
+        error.printStackTrace();
       }
 
-      command = new BufferedReader(new InputStreamReader(System.in));
+//      command = new BufferedReader(new InputStreamReader(System.in));
 
+//    }
+    synchronized (this) {
+      rtx4090TI.updateDisplay();
     }
+
   }
 
 
@@ -363,23 +392,15 @@ public class UserInterface {
 
 
 
-//  /**
-//   *Method for a user to log on and access their village
-//   * For multiplayer
-//   * @param user
-//   * @param password
-//   * @return MainVillage (their village)
-//   */
-//  private MainVillage logon(String user, String password) {
-//  return null;
-//  }
+
+
 
   /**
    * Method to enter village editor
    * @param myVillage
    */
   private void editVillage(MainVillage myVillage) {
-    editor = new Editor(myVillage);
+    editor = new Editor(myVillage, rtx4090TI);
   }
 
   /**
@@ -387,7 +408,7 @@ public class UserInterface {
    * @param myVillage
    */
   private void enterShop(MainVillage myVillage) {
-    shop = new Shop(myVillage);
+    shop = new Shop(myVillage, rtx4090TI);
   }
 
   /**
@@ -398,11 +419,11 @@ public class UserInterface {
    * @param realtime realtime = true will simulate in realtime
    */
   private void initiateSimulator(MainVillage attacker, MainVillage defender, boolean realtime) {
-    battleSim = new VeryAccurateBattleSimulator(attacker, defender, realtime);
+    battleSim = new VeryAccurateBattleSimulator(attacker, defender, realtime, rtx4090TI);
 
   }
 
-
+  public NvidiaRTX4090TI getRtx4090TI() {return this.rtx4090TI;}
 
 
 /**

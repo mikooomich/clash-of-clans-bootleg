@@ -1,6 +1,7 @@
 package Village.Buildings;
 
 import CustomExceptions.Exceptions;
+import Engine.NvidiaRTX4090TI;
 import Village.Buildings.Defences.*;
 import Village.Buildings.ResourceProduction.*;
 import Village.MainVillage;
@@ -8,7 +9,6 @@ import Village.MainVillage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
-import static Engine.UserInterface.rtx4090TI;
 /**
  * This class is for the village hall. It contains properties relating to the village resources and builders.
  * Upgrading the village hall will automatically enable the player to buy the new structures for the village hall level
@@ -16,18 +16,13 @@ import static Engine.UserInterface.rtx4090TI;
 public class VillageHall extends Village.Buildings.Structures {
 
   public static final int maxLevel = 3;
+  private NvidiaRTX4090TI rtx4090TI;
 
-
-
-  public VillageHall(MainVillage mv) {
-    this();
-    this.mainVillage = mv;
-    addStructuresToAvailable(MainVillage.LEVEL_1_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_1_AVAILABLE_STRUCTURES);
-  }
   /**
    * Creates a new village hall at level 1 with all it's things at level 1
+   * @param mv
    */
-  public VillageHall() {
+  public VillageHall(MainVillage mv, NvidiaRTX4090TI rtx4090TI) {
     this.name = "VillageHall";
     this.currentLevel = 1;
     this.maxHitpoints = 1000;
@@ -40,22 +35,24 @@ public class VillageHall extends Village.Buildings.Structures {
     this.baseMaxGoldStorage = 500;
     this.currentWoodInStorage = 1550;
     this.currentIronInStorage = 50;
+    this.mainVillage = mv;
     this.symbol = "v";
     this.availableBuilders = 2;
     maxBuilders = availableBuilders;
-
+    this.rtx4090TI = rtx4090TI;
+    addStructuresToAvailable(MainVillage.LEVEL_1_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_1_AVAILABLE_STRUCTURES);
     //add storage multiplier / update upgrade method
   }
 
 
   //Current wood in storage for the village
-  public int currentWoodInStorage;
+  private int currentWoodInStorage;
 
   //Current iron in storage for the village
-  public int currentIronInStorage;
+  private int currentIronInStorage;
 
   //Current gold in storage for the village
-  public int currentGoldInStorage;
+  private int currentGoldInStorage;
 
   //Base max wood capacity for storage
   public int baseMaxWoodStorage;
@@ -86,20 +83,12 @@ public class VillageHall extends Village.Buildings.Structures {
 
   private MainVillage mainVillage;
 
-
-
-  public void setMainVillage(MainVillage mv) {
-    mainVillage = mv;
-  }
-
-
   /**
    * upgrade village hall, adds next level's buildings to avail structures list
    */
   public void upgrade() {
     if(currentLevel < maxLevel) {
-      startBuildOrUpgrade(this);
-
+      rtx4090TI.append(startBuildOrUpgrade(this));
     } else {
       rtx4090TI.append("Already reached max level.");
     }
@@ -108,7 +97,14 @@ public class VillageHall extends Village.Buildings.Structures {
 
   @Override
   public void finishUpgrade() {
-    if(isBought) {
+    if (!getIsBuilt()){
+      // case for first ime buying
+      rtx4090TI.updateDisplay(this.getName() + " bought building. Current level = " + this.currentLevel);
+      finishBuild();
+      buildDone();
+    }
+
+    else if(isBought) {
       this.currentLevel+= 1;
       this.maxHitpoints = Math.round(maxHitpoints*hpMultiplier);
       rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
@@ -117,8 +113,9 @@ public class VillageHall extends Village.Buildings.Structures {
       } else if (this.currentLevel == 3) {
         addStructuresToAvailable(MainVillage.LEVEL_3_AVAILABLE_STRUCTURES.keySet(), MainVillage.LEVEL_3_AVAILABLE_STRUCTURES);
       }
-    } else {
-      rtx4090TI.updateDisplay(this.getName() + " finished building. Current level = " + this.currentLevel);
+
+      remainingUpgradeTime = 0; // signify upgrade is complete
+      buildDone(); // return builders
     }
 
   }
@@ -285,32 +282,32 @@ public class VillageHall extends Village.Buildings.Structures {
       switch (key) {
         case "LumberMill":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new LumberMill(this));
+            mainVillage.addToVillage(new LumberMill(this, rtx4090TI));
           }
           break;
         case "IronMine":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new IronMine(this));
+            mainVillage.addToVillage(new IronMine(this, rtx4090TI));
           }
           break;
         case "GoldMine":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new GoldMine(this));
+            mainVillage.addToVillage(new GoldMine(this, rtx4090TI));
           }
           break;
         case "Farm":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new Farm(this));
+            mainVillage.addToVillage(new Farm(this, rtx4090TI));
           }
           break;
         case "Cannon":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new Cannon(this));
+            mainVillage.addToVillage(new Cannon(this, rtx4090TI));
           }
           break;
         case "ArcherTower":
           for(int i = 0; i < structures.get(key); i++) {
-            mainVillage.addToVillage(new ArcherTower(this));
+            mainVillage.addToVillage(new ArcherTower(this, rtx4090TI));
           }
           break;
       }

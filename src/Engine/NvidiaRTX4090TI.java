@@ -10,7 +10,6 @@ import Village.Inhabitant;
 import Village.MainVillage;
 
 
-
 import static Engine.UserInterface.drawMap;
 
 public class NvidiaRTX4090TI {
@@ -24,6 +23,8 @@ public class NvidiaRTX4090TI {
     private String output = "";
     private String debugOut = "";
 
+    WorkerThread communicationThread;
+
 
     /**
      * Blank
@@ -35,7 +36,7 @@ public class NvidiaRTX4090TI {
      * Compile village info
      * @param village
      */
-    public NvidiaRTX4090TI(MainVillage village) {
+    public void printMap(MainVillage village) {
         output += village.getDetails();
         output += "\n--------PRINTING MAP---------\n";
         output += drawMap(village.getMap());
@@ -47,7 +48,7 @@ public class NvidiaRTX4090TI {
      * Compile Inhabitant details
      * @param entity
      */
-    public NvidiaRTX4090TI(Inhabitant entity) {
+    public void printInhabitant(Inhabitant entity) {
         // all inhabitant things
         output += entity.getName() + "(" + entity.getSymbol()+ ") " + "id="+ entity.getID() +"\n";
         output += "Hp: " + entity.maxHitpoints + " Pop. weight: " + entity.getPopulationWeight() + " Location (x,y): (" + entity.getYPos() + "," + entity.getXPos() + ")\n";
@@ -92,20 +93,32 @@ public class NvidiaRTX4090TI {
 
 
     /**
-     * Print and flush the framebuffer
+     * Print and flush the framebuffer.
+     *
      * @return
      */
-    void updateDisplay() {
-        System.out.println(output);
+    public void updateDisplay() {
+//        System.out.println(output);
+        updateDisplay(output);
         output = "";
     }
 
     /**
-     * Print directly
+     * Print directly. This will send the message immediately to the client.
+     *
      * @return
      */
      public void updateDisplay(String line) {
-        System.out.println(line);
+//         System.out.println(line);
+         try {
+//             System.out.println(line + " in updatedisplay");
+             communicationThread.takeInMessage(line); // add to queue of messages to send
+         }
+         catch (NullPointerException e) {
+             System.out.println("No link to where to send the message to: " + e.getMessage());
+         }
+
+     //    communicationThread.notify(); // wake up message sender
     }
 
 
@@ -118,27 +131,44 @@ public class NvidiaRTX4090TI {
     }
 
 
-
     /**
-     * Add the content in the form of a new line to the debug framebuffer.
-     * @param input
+     * Set a link so we can send the content to the thread in charger of communicating with client.
+     * @param link
      */
+    public void setThreadLink(WorkerThread link) {
+        this.communicationThread = link;
+    }
+
+
+
+
+
+
+
+
+
+
+//
+//    /**
+//     * Add the content in the form of a new line to the debug framebuffer.
+//     * @param input
+//     */
     public void appendDebug(String input) {
-        debugOut += input + "\n";
+        // ignore this
+//        debugOut += input + "\n";
     }
-
-    /**
-     * Flush debug
-     * @return
-     */
-    void debugUpdateDisplay() {
-        System.out.println("\n---debug---\n" + debugOut + "\n---debug---\n");
-        debugOut = "";
-    }
-
-    public void debugUpdateDisplay(String line) {
-        System.out.println(line);
-    }
-
+//
+//    /**
+//     * Flush debug
+//     * @return
+//     */
+//    void debugUpdateDisplay() {
+//        System.out.println("\n---debug---\n" + debugOut + "\n---debug---\n");
+//        debugOut = "";
+//    }
+//
+//    public void debugUpdateDisplay(String line) {
+//        System.out.println(line);
+//    }
 
 }

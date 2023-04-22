@@ -1,17 +1,16 @@
 package Village.Buildings.Defences;
 
+import Engine.NvidiaRTX4090TI;
 import Village.Buildings.VillageHall;
-import static Engine.UserInterface.rtx4090TI;
 public class Cannon extends DefenceStructures {
 
-    public static int maxLevel = 5;
+    private static int maxLevel = 5;
 
-    public Cannon(VillageHall village) {
-        this();
-        this.setVillageHall(village);
-    }
+    private VillageHall villageHall;
 
-    public Cannon() {
+    private NvidiaRTX4090TI rtx4090TI;
+    public Cannon(VillageHall village, NvidiaRTX4090TI rtx4090TI) {
+        this.villageHall = village;
         this.name = "Cannon";
         this.currentLevel = 1;
         this.maxHitpoints = 500;
@@ -25,11 +24,12 @@ public class Cannon extends DefenceStructures {
         this.symbol = "c";
         this.dmgMultiplier = 1.25f;
         this.attackRate = 2;
+        this.rtx4090TI = rtx4090TI;
     }
 
     public void upgrade() {
         if (currentLevel < maxLevel) {
-            startBuildOrUpgrade(getVillageHall());
+            rtx4090TI.append(startBuildOrUpgrade(villageHall));
         } else {
             rtx4090TI.append("Already reached max level.");
         }
@@ -43,6 +43,5 @@ public class Cannon extends DefenceStructures {
         rtx4090TI.updateDisplay(this.getName() + " upgraded. Current level = " + this.currentLevel);
 
     }
-
 
 }
